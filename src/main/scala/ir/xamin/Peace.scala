@@ -7,7 +7,8 @@ class Peace(host: Option[String], username: Option[String], password: Option[Str
     println(username.get+"@"+host.get+"/"+resource.getOrElse("peace"))
 }
 
-object Peace extends App {
+object Peace
+{
     import org.clapper.argot._
     import org.clapper.argot.ArgotConverters._
 
@@ -18,14 +19,17 @@ object Peace extends App {
     val password = parser.parameter[String]("password", "password to be used for authentication", false)
     val resource = parser.parameter[String]("resource", "resource of jid", true)
 
-    try
+    def main(args: Array[String])
     {
-        parser.parse(args)
-        new Peace(host.value, username.value, password.value, resource.value)
-    }
-    catch
-    {
-        case e: ArgotUsageException => println(e.message)
+        try
+        {
+            parser.parse(args)
+            new Peace(host.value, username.value, password.value, resource.value)
+        }
+        catch
+        {
+            case e: ArgotUsageException => println(e.message)
+        }
     }
 }
 
