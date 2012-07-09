@@ -12,3 +12,5 @@ libraryDependencies += "org.igniterealtime.smack" % "smack" % "3.2.1"
 
 libraryDependencies += "org.igniterealtime.smack" % "smackx" % "3.2.1"
 
+libraryDependencies += "org.clapper" %% "argot" % "0.4"
+
