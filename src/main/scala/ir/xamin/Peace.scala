@@ -41,15 +41,11 @@ object Peace {
   val password = parser.parameter[String]("password", "password to be used for authentication", false)
   val resource = parser.parameter[String]("resource", "resource of jid", true)
 
-  def main(args: Array[String])
-  {
-    try
-    {
+  def main(args: Array[String]) {
+    try {
       parser.parse(args)
       new Peace(host.value, username.value, password.value, resource.value)
-    }
-    catch
-    {
+    } catch {
       case e: ArgotUsageException => println(e.message)
     }
   }
