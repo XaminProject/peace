@@ -2,7 +2,6 @@ package ir.xamin
 
 import providers._
 import processors._
-
 import com.redis._
 import org.jivesoftware.smack.XMPPConnection
 import org.jivesoftware.smack.provider.ProviderManager
@@ -20,6 +19,8 @@ class Peace(host: Option[String], username: Option[String], password: Option[Str
   def registerIQProviders() {
     // search
     providerManager.addIQProvider(SearchProvider.element, SearchProvider.namespace, new SearchProvider)
+    // appliance (set)
+    providerManager.addIQProvider(ApplianceSetProvider.element, ApplianceSetProvider.namespace, new ApplianceSetProvider)
   }
 
   def registerProcessors() {
@@ -27,6 +28,10 @@ class Peace(host: Option[String], username: Option[String], password: Option[Str
     val searchProcessor = new SearchProcessor(redis, xmpp)
     xmpp.createPacketCollector(searchProcessor.filter)
     xmpp.addPacketListener(searchProcessor, searchProcessor.filter)
+    // Appliance (set/get)
+    val applianceProcessor = new ApplianceProcessor(redis, xmpp)
+    xmpp.createPacketCollector(applianceProcessor.filter)
+    xmpp.addPacketListener(applianceProcessor, applianceProcessor.filter)
   }
 }
 
