@@ -21,6 +21,8 @@ class Peace(host: Option[String], username: Option[String], password: Option[Str
     providerManager.addIQProvider(SearchProvider.element, SearchProvider.namespace, new SearchProvider)
     // appliance (set)
     providerManager.addIQProvider(ApplianceSetProvider.element, ApplianceSetProvider.namespace, new ApplianceSetProvider)
+    // appliance (get)
+    providerManager.addIQProvider(ApplianceGetProvider.element, ApplianceGetProvider.namespace, new ApplianceGetProvider)
   }
 
   def registerProcessors() {
