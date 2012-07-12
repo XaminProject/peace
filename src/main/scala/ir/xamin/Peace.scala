@@ -7,8 +7,8 @@ import com.redis._
 import org.jivesoftware.smack.XMPPConnection
 import org.jivesoftware.smack.provider.ProviderManager
 
-class Peace(host: Option[String], username: Option[String], password: Option[String], resource: Option[String]) {
-  val redis = new RedisClient("localhost", 6379)
+class Peace(host: Option[String], username: Option[String], password: Option[String], resource: Option[String], redishost: Option[String], redisport: Option[Int]) {
+  val redis = new RedisClient(redishost.getOrElse("localhost"), redisport.getOrElse(6379))
   val xmpp = new XMPPConnection(host.get)
   xmpp.connect()
   xmpp.login(username.get, password.get, resource.getOrElse("peace"))
@@ -36,15 +36,17 @@ object Peace {
 
   val parser = new ArgotParser("Peace", preUsage=Some("Version 0.0.1"))
 
-  val host = parser.parameter[String]("hostname", "xmpp server", false)
-  val username = parser.parameter[String]("username", "username pf jid", false)
-  val password = parser.parameter[String]("password", "password to be used for authentication", false)
-  val resource = parser.parameter[String]("resource", "resource of jid", true)
+  private val host = parser.parameter[String]("hostname", "xmpp server", false)
+  private val username = parser.parameter[String]("username", "username pf jid", false)
+  private val password = parser.parameter[String]("password", "password to be used for authentication", false)
+  private val resource = parser.parameter[String]("resource", "resource of jid", true)
+  private val redishost = parser.option[String](List("r", "redishost"), "localhost", "redis host")
+  private val redisport = parser.option[Int](List("p", "redisport"), "6379", "redis port")
 
   def main(args: Array[String]) {
     try {
       parser.parse(args)
-      new Peace(host.value, username.value, password.value, resource.value)
+      new Peace(host.value, username.value, password.value, resource.value, redishost.value, redisport.value)
     } catch {
       case e: ArgotUsageException => println(e.message)
     }
