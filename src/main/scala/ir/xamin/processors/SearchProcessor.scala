@@ -19,7 +19,7 @@ class SearchProcessor(redisClient: RedisClient, xmppConnection: XMPPConnection) 
   }
 
   def processSearch(search: Search):Unit = {
-    val packages = redis.keys("Package:"+search.getQuery)
+    val packages = redis.keys("Appliance:"+search.getQuery)
     val result = search.createResultIQ(packages)
     xmpp.sendPacket(result)
   }
