@@ -14,7 +14,6 @@ class ApplianceSetProvider extends IQProvider {
       val eventType = parser.next()
       if(eventType == XmlPullParser.START_TAG) {
         val name = parser.getName()
-        println(name)
         name match {
           case "name" => applianceSet.setName(parser.nextText())
           case "version" => applianceSet.setVersion(parser.nextText())
