@@ -27,7 +27,7 @@ class Search extends IQ {
     for {
       pack <- packages.get
     }{
-      val name = new String(pack.get).substring(9)
+      val name = new String(pack.get).substring(10)
       packagesTag += <package>{ name }</package>
     }
     val xml = <search xmlns="client:search:xamin">{ packagesTag }</search>
