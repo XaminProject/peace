@@ -31,7 +31,6 @@ class ApplianceGet extends IQ {
           <name>{ n }</name>
           <version>{ v }</version>
           <description>{ d }</description>
-          <url>{ u }</url>
           <author>{ a }</author>
         </appliance>.toString
       case _ => ""
