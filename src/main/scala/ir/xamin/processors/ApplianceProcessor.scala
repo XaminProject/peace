@@ -1,7 +1,7 @@
 package ir.xamin.processors
 
 import ir.xamin.Appliance
-import ir.xamin.packet.{ApplianceSet, ApplianceGet}
+import ir.xamin.packet.{ApplianceSet, ApplianceGet, ApplianceItem}
 import ir.xamin.providers.ApplianceSetProvider
 import org.jivesoftware.smack.XMPPConnection
 import com.redis._
@@ -11,6 +11,7 @@ import JsonSerialization._
 import org.jivesoftware.smack.PacketListener
 import org.jivesoftware.smack.packet.{IQ, Packet}
 import org.jivesoftware.smack.filter.PacketFilter
+import org.jivesoftware.smackx.pubsub._
 
 class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnection) extends PacketListener {
   object filter extends PacketFilter {
@@ -35,8 +36,25 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
   def processApplianceSet(set: ApplianceSet):Unit = {
     val appliance = new Appliance(set.getName, set.getVersion,
       set.getDescription, set.getURL, set.getAuthor)
-    redis.lpush("Appliance:"+set.getName, tojson[Appliance](appliance))
+    val key = "Appliance:"+set.getName
+    val manager = new PubSubManager(xmpp)
+    val isNew = !redis.exists(key)
+    redis.lpush(key, tojson[Appliance](appliance))
     xmpp.sendPacket(IQ.createResultIQ(set))
+    if(isNew) {
+      val form = new ConfigureForm(FormType.submit)
+      form.setAccessModel(AccessModel.open)
+      form.setDeliverPayloads(true)
+      form.setNotifyRetract(true)
+      form.setPersistentItems(true)
+      form.setPublishModel(PublishModel.open)
+      val leaf = manager.createNode(set.getName, form)
+    } else {
+      val node = manager.getNode(set.getName)
+      node match {
+        case n:LeafNode => n.send(new PayloadItem(new ApplianceItem(set.getVersion)))
+      }
+    }
   }
 
   def processApplianceGet(get: ApplianceGet):Unit = {
