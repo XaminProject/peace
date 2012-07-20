@@ -23,6 +23,8 @@ class Peace(host: Option[String], username: Option[String], password: Option[Str
     providerManager.addIQProvider(ApplianceSetProvider.element, ApplianceSetProvider.namespace, new ApplianceSetProvider)
     // appliance (get)
     providerManager.addIQProvider(ApplianceGetProvider.element, ApplianceGetProvider.namespace, new ApplianceGetProvider)
+    // appliance (install)
+    providerManager.addIQProvider(ApplianceInstallProvider.element, ApplianceInstallProvider.namespace, new ApplianceInstallProvider)
   }
 
   def registerProcessors() {
@@ -30,7 +32,7 @@ class Peace(host: Option[String], username: Option[String], password: Option[Str
     val searchProcessor = new SearchProcessor(redis, xmpp)
     xmpp.createPacketCollector(searchProcessor.filter)
     xmpp.addPacketListener(searchProcessor, searchProcessor.filter)
-    // Appliance (set/get)
+    // Appliance (set/get/install)
     val applianceProcessor = new ApplianceProcessor(redis, xmpp)
     xmpp.createPacketCollector(applianceProcessor.filter)
     xmpp.addPacketListener(applianceProcessor, applianceProcessor.filter)

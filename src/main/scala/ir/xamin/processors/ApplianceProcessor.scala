@@ -1,8 +1,9 @@
 package ir.xamin.processors
 
 import ir.xamin.Appliance
-import ir.xamin.packet.{ApplianceSet, ApplianceGet, ApplianceItem}
+import ir.xamin.packet.{ApplianceSet, ApplianceGet, ApplianceItem, ApplianceInstall, OwnerBehalfSubscribe}
 import ir.xamin.providers.ApplianceSetProvider
+import scala.collection.mutable.MutableList
 import org.jivesoftware.smack.XMPPConnection
 import com.redis._
 import sjson.json._
@@ -19,6 +20,7 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
       return p match {
         case p:ApplianceGet => true
         case p:ApplianceSet => true
+        case p:ApplianceInstall => true
         case _ => false
       }
     }
@@ -30,6 +32,7 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
     packet match {
       case set: ApplianceSet => processApplianceSet(set)
       case get: ApplianceGet => processApplianceGet(get)
+      case install: ApplianceInstall => processApplianceInstall(install)
     }
   }
 
@@ -80,6 +83,51 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
       }
     }
     xmpp.sendPacket(IQ.createResultIQ(get))
+  }
+
+  def subscribeJIDToAppliance(jid:String, appliance:String):Unit = {
+    xmpp.sendPacket(new OwnerBehalfSubscribe(xmpp, jid, appliance))
+  }
+
+  def processApplianceInstall(install: ApplianceInstall):Unit = {
+    // lets assume we've 6 5 4 3 2 1 versions for requested package
+    // and requested version is 5 and base is 2, we gonna give details
+    // of requested version + history (3, 4, 5)
+    val name = install.getName
+    val version = install.getVersion
+    val base = install.getBase
+    val key = "Appliance:"+name
+    var target:Appliance = null
+    var versionHistory = MutableList[String]()
+    val len = redis.llen(key)
+    if(!len.isEmpty) {
+      val allVersions = redis.lrange(key, 0, len.get-1)
+      for (ap <- allVersions.get) {
+        val appliance = fromjson[Appliance](Js(ap.get))
+        if(version == null || appliance.version == version) {
+          // no specific version requested, let's work with last one
+          target = appliance
+        }
+        if(target != null) {
+          if(base == null) {
+            // user has not specified base so send the result
+            subscribeJIDToAppliance(install.getFrom, target.name)
+            return xmpp.sendPacket(install.createResultIQ(target))
+          } else {
+            if(appliance.version==base) {
+              // if we've reached the requested base send the result
+              subscribeJIDToAppliance(install.getFrom, target.name)
+              val result = install.createResultIQ(target)
+              result.setHistory(versionHistory)
+              return xmpp.sendPacket(result)
+            }
+            // prepend version to versionHistory
+            appliance.version +=: versionHistory
+          }
+        }
+      }
+    }
+    xmpp.sendPacket(IQ.createResultIQ(install))
   }
 }
 // vim: set ts=4 sw=4 et:
