@@ -56,6 +56,7 @@ object Peace {
     try {
       parser.parse(args)
       new Peace(host.value, username.value, password.value, resource.value, redishost.value, redisport.value)
+      System.in.read()
     } catch {
       case e: ArgotUsageException => println(e.message)
     }
