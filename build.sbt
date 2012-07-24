@@ -16,3 +16,7 @@ libraryDependencies += "org.igniterealtime.smack" % "smackx" % "3.2.1"
 
 libraryDependencies += "org.clapper" %% "argot" % "0.4"
 
+seq(com.github.retronym.SbtOneJar.oneJarSettings: _*)
+
+libraryDependencies += "commons-lang" % "commons-lang" % "2.6"
+
