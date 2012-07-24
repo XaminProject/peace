@@ -18,6 +18,7 @@ class ApplianceInstallProvider extends IQProvider {
           case "name" => applianceInstall.setName(parser.nextText())
           case "version" => applianceInstall.setVersion(parser.nextText())
           case "base" => applianceInstall.setBase(parser.nextText())
+          case _ => Unit
         }
       } else if(eventType == XmlPullParser.END_TAG) {
         if(parser.getName() == ApplianceInstallProvider.element)
