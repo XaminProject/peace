@@ -4,6 +4,8 @@ import ir.xamin.providers.ApplianceInstallProvider
 import ir.xamin.Appliance
 import scala.xml._
 import scala.collection.mutable.MutableList
+import java.io.File
+import java.net.URL
 import org.jivesoftware.smack.packet.{IQ, Packet}
 
 class ApplianceInstall extends IQ {
@@ -11,7 +13,7 @@ class ApplianceInstall extends IQ {
   private var version:String = _
   private var base:String = _
   private var appliance:Appliance = _
-  private var history = MutableList[String]()
+  private var history = MutableList[Appliance]()
 
   setType(IQ.Type.SET)
 
@@ -33,14 +35,25 @@ class ApplianceInstall extends IQ {
 
   def getHistory = history
 
-  def setHistory(v:MutableList[String]) = history = v
+  def setHistory(v:MutableList[Appliance]) = history = v
 
   def getChildElementXML:String = {
     val ns = ApplianceInstallProvider.namespace
     var historyElement:Elem = null
     val versionHistory = MutableList[Elem]()
-    for(v <- history)
-      versionHistory += <version>{ v }</version>
+    var previousVersion = base
+    for(a <- history)
+    {
+      val v = a.version
+      val u = a.url
+      val url = new URL(u)
+      val path = new File(url.getPath()).getParent // directory of the appliance
+      val diffPath = path+"/"+a.name+"_"+previousVersion+"_to_"+v+".xdelta"
+      val diffURL = new URL(url.getProtocol, url.getHost, url.getPort, diffPath)
+      val xdelta = diffURL.toString
+      versionHistory += <appliance version={v}>{xdelta}</appliance>
+      previousVersion = a.version
+    }
     if(!versionHistory.isEmpty)
       historyElement = <history>{ versionHistory }</history>
     appliance match {

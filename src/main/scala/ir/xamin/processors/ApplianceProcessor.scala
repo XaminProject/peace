@@ -98,16 +98,19 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
     val base = install.getBase
     val key = "Appliance:"+name
     var target:Appliance = null
-    var versionHistory = MutableList[String]()
+    var versionHistory = MutableList[Appliance]()
     val len = redis.llen(key)
     if(!len.isEmpty) {
       val allVersions = redis.lrange(key, 0, len.get-1)
       for (ap <- allVersions.get) {
         val appliance = fromjson[Appliance](Js(ap.get))
-        if(version == null || appliance.version == version) {
-          // no specific version requested, let's work with last one
-          target = appliance
+        if(target == null) {
+          if(version == null || appliance.version == version) {
+            // no specific version requested, let's work with last one
+            target = appliance
+          }
         }
+        // we want to run it on each loop, so don't make it an else
         if(target != null) {
           if(base == null) {
             // user has not specified base so send the result
@@ -118,11 +121,12 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
               // if we've reached the requested base send the result
               subscribeJIDToAppliance(install.getFrom, target.name)
               val result = install.createResultIQ(target)
+              result setBase base
               result.setHistory(versionHistory)
               return xmpp.sendPacket(result)
             }
-            // prepend version to versionHistory
-            appliance.version +=: versionHistory
+            // prepend old appliance to versionHistory
+            appliance +=: versionHistory
           }
         }
       }
