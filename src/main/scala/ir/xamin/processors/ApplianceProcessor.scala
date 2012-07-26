@@ -12,14 +12,20 @@ import JsonSerialization._
 import org.jivesoftware.smack.PacketListener
 import org.jivesoftware.smack.packet.{IQ, Packet}
 import org.jivesoftware.smack.filter.PacketFilter
+import org.jivesoftware.smack.util.StringUtils
 import org.jivesoftware.smackx.pubsub._
 
-class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnection) extends PacketListener {
+class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnection, rms: Array[String]) extends PacketListener {
   object filter extends PacketFilter {
     def accept(p: Packet):Boolean = {
       return p match {
         case p:ApplianceGet => true
-        case p:ApplianceSet => true
+        case p:ApplianceSet => {
+          // check if jid is in list of valid rms jids
+          if(rms.length == 0 || rms.indexOf(StringUtils.parseBareAddress(p.getFrom())) > -1)
+            true
+          false
+        }
         case p:ApplianceInstall => true
         case _ => false
       }

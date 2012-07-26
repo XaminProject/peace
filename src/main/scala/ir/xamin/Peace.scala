@@ -6,12 +6,20 @@ import com.redis._
 import org.jivesoftware.smack.XMPPConnection
 import org.jivesoftware.smack.provider.ProviderManager
 
-class Peace(host: Option[String], username: Option[String], password: Option[String], resource: Option[String], redishost: Option[String], redisport: Option[Int]) {
+class Peace(host: Option[String],
+  username: Option[String],
+  password: Option[String],
+  resource: Option[String],
+  redishost: Option[String],
+  redisport: Option[Int],
+  rmsJid: Option[String]) {
   val redis = new RedisClient(redishost.getOrElse("localhost"), redisport.getOrElse(6379))
   val xmpp = new XMPPConnection(host.get)
   xmpp.connect()
   xmpp.login(username.get, password.get, resource.getOrElse("peace"))
   val providerManager = ProviderManager.getInstance()
+
+  val rms = rmsJid.getOrElse("").split(",")
 
   registerIQProviders()
   registerProcessors()
@@ -33,7 +41,7 @@ class Peace(host: Option[String], username: Option[String], password: Option[Str
     xmpp.createPacketCollector(searchProcessor.filter)
     xmpp.addPacketListener(searchProcessor, searchProcessor.filter)
     // Appliance (set/get/install)
-    val applianceProcessor = new ApplianceProcessor(redis, xmpp)
+    val applianceProcessor = new ApplianceProcessor(redis, xmpp, rms)
     xmpp.createPacketCollector(applianceProcessor.filter)
     xmpp.addPacketListener(applianceProcessor, applianceProcessor.filter)
   }
@@ -51,11 +59,18 @@ object Peace {
   private val resource = parser.parameter[String]("resource", "resource of jid", true)
   private val redishost = parser.option[String](List("r", "redishost"), "localhost", "redis host")
   private val redisport = parser.option[Int](List("p", "redisport"), "6379", "redis port")
+  private val rms = parser.option[String](List("s", "rms"), "jid", "jid of rms instances separated by comma")
 
   def main(args: Array[String]) {
     try {
       parser.parse(args)
-      new Peace(host.value, username.value, password.value, resource.value, redishost.value, redisport.value)
+      new Peace(host.value,
+          username.value,
+          password.value,
+          resource.value,
+          redishost.value,
+          redisport.value,
+          rms.value)
       System.in.read()
     } catch {
       case e: ArgotUsageException => println(e.message)
