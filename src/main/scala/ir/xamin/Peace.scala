@@ -12,7 +12,8 @@ class Peace(host: Option[String],
   resource: Option[String],
   redishost: Option[String],
   redisport: Option[Int],
-  rmsJid: Option[String]) {
+  rmsJid: Option[String],
+  marketJid: Option[String]) {
   val redis = new RedisClient(redishost.getOrElse("localhost"), redisport.getOrElse(6379))
   val xmpp = new XMPPConnection(host.get)
   xmpp.connect()
@@ -20,6 +21,7 @@ class Peace(host: Option[String],
   val providerManager = ProviderManager.getInstance()
 
   val rms = rmsJid.getOrElse("").split(",")
+  val market = marketJid.getOrElse("").split(",")
 
   registerIQProviders()
   registerProcessors()
@@ -33,6 +35,8 @@ class Peace(host: Option[String],
     providerManager.addIQProvider(ApplianceGetProvider.element, ApplianceGetProvider.namespace, new ApplianceGetProvider)
     // appliance (install)
     providerManager.addIQProvider(ApplianceInstallProvider.element, ApplianceInstallProvider.namespace, new ApplianceInstallProvider)
+    // market (install)
+    providerManager.addIQProvider(MarketInstallProvider.element, MarketInstallProvider.namespace, new MarketInstallProvider)
   }
 
   def registerProcessors() {
@@ -44,6 +48,10 @@ class Peace(host: Option[String],
     val applianceProcessor = new ApplianceProcessor(redis, xmpp, rms)
     xmpp.createPacketCollector(applianceProcessor.filter)
     xmpp.addPacketListener(applianceProcessor, applianceProcessor.filter)
+    // market (install/remove)
+    val marketProcessor = new MarketProcessor(redis, xmpp, market)
+    xmpp.createPacketCollector(marketProcessor.filter)
+    xmpp.addPacketListener(marketProcessor, marketProcessor.filter)
   }
 }
 
@@ -60,6 +68,7 @@ object Peace {
   private val redishost = parser.option[String](List("r", "redishost"), "localhost", "redis host")
   private val redisport = parser.option[Int](List("p", "redisport"), "6379", "redis port")
   private val rms = parser.option[String](List("s", "rms"), "jid", "jid of rms instances separated by comma")
+  private val market = parser.option[String](List("m", "market"), "jid", "jid of market instances separated by comma")
 
   def main(args: Array[String]) {
     try {
@@ -70,7 +79,8 @@ object Peace {
           resource.value,
           redishost.value,
           redisport.value,
-          rms.value)
+          rms.value,
+          market.value)
       System.in.read()
     } catch {
       case e: ArgotUsageException => println(e.message)
