@@ -26,7 +26,7 @@ class ApplianceSet extends IQ {
   def setAuthor(v:String) = author = v
   def getChildElementXML:String = {
     val ns = ApplianceSetProvider.namespace
-    return <package xmlns="{ ns }">
+    return <package xmlns={ ns }>
         <name>{ name }</name>
         <description>{ description }</description>
         <version>{ version }</version>
