@@ -37,6 +37,8 @@ class Peace(host: Option[String],
     providerManager.addIQProvider(ApplianceInstallProvider.element, ApplianceInstallProvider.namespace, new ApplianceInstallProvider)
     // market (install)
     providerManager.addIQProvider(MarketInstallProvider.element, MarketInstallProvider.namespace, new MarketInstallProvider)
+    // market (remove)
+    providerManager.addIQProvider(MarketRemoveProvider.element, MarketRemoveProvider.namespace, new MarketRemoveProvider)
   }
 
   def registerProcessors() {
