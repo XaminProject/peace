@@ -23,7 +23,8 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
           // check if jid is in list of valid rms jids
           if((rms.length == 1 && rms(0) == "") || rms.indexOf(StringUtils.parseBareAddress(p.getFrom())) > -1)
             true
-          false
+          else
+            false
         }
         case p:ApplianceInstall => true
         case _ => false
