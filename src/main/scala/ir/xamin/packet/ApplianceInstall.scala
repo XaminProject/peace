@@ -48,7 +48,9 @@ class ApplianceInstall extends IQ {
       val u = a.url
       val url = new URL(u)
       val path = new File(url.getPath()).getParent // directory of the appliance
-      val diffPath = path+"/"+a.name+"_"+previousVersion+"_to_"+v+".xdelta"
+      // the path is like http://hostname/path/to/images/some-hash-name/
+      // and our xdelta is in same path called old-version_TO_new-version.xdelta
+      val diffPath = path+"/"+previousVersion+"_TO_"+v+".xdelta"
       val diffURL = new URL(url.getProtocol, url.getHost, url.getPort, diffPath)
       val xdelta = diffURL.toString
       versionHistory += <appliance version={v}>{xdelta}</appliance>
