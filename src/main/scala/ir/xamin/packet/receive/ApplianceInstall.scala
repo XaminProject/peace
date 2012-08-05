@@ -41,7 +41,6 @@ class ApplianceInstall extends IQ {
 
   def createResultIQ(appliance: Appliance):ReplyApplianceInstall = {
     val applianceInstall = new ReplyApplianceInstall
-    applianceInstall.setType(IQ.Type.RESULT)
     applianceInstall.setPacketID(getPacketID())
     applianceInstall.setFrom(getTo())
     applianceInstall.setTo(getFrom())
