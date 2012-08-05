@@ -49,7 +49,7 @@ class ApplianceInstall extends IQ {
     if(!versionHistory.isEmpty)
       historyElement = <history>{ versionHistory }</history>
     appliance match {
-      case Appliance(n, v, d, u, a) => <appliance xmlns={ ns }>
+      case Appliance(n, v, d, u, a, e) => <appliance xmlns={ ns }>
           <name>{ n }</name>
           <version>{ v }</version>
           <description>{ d }</description>

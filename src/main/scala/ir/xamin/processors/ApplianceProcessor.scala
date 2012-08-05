@@ -2,7 +2,7 @@ package ir.xamin.processors
 
 import ir.xamin.Appliance
 import ir.xamin.packet.{ApplianceItem, OwnerBehalfSubscribe}
-import ir.xamin.packet.receive.{ApplianceSet, ApplianceGet, ApplianceInstall}
+import ir.xamin.packet.receive.{ApplianceSet, ApplianceGet, ApplianceInstall, ApplianceEnable}
 import scala.collection.mutable.MutableList
 import org.jivesoftware.smack.XMPPConnection
 import com.redis._
@@ -27,6 +27,13 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
           else
             false
         }
+        case p:ApplianceEnable => {
+          // check if jid is in list of valid rms jids
+          if((rms.length == 1 && rms(0) == "") || rms.indexOf(StringUtils.parseBareAddress(p.getFrom())) > -1)
+            true
+          else
+            false
+        }
         case p:ApplianceInstall => true
         case _ => false
       }
@@ -38,6 +45,7 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
   def processPacket(packet: Packet):Unit = {
     packet match {
       case set: ApplianceSet => processApplianceSet(set)
+      case enable: ApplianceEnable => processApplianceEnable(enable)
       case get: ApplianceGet => processApplianceGet(get)
       case install: ApplianceInstall => processApplianceInstall(install)
     }
@@ -65,6 +73,33 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
         case n:LeafNode => n.send(new PayloadItem(new ApplianceItem(set.getVersion)))
       }
     }
+  }
+
+  def processApplianceEnable(enable: ApplianceEnable):Unit = {
+    val name = enable.getName
+    val version = enable.getVersion
+    val key = "Appliance:"+name
+    val len = redis.llen(key)
+    if(!len.isEmpty) {
+      val allVersions = redis.lrange(key, 0, len.get-1)
+      var index = 0
+      for (ap <- allVersions.get) {
+        val appliance = fromjson[Appliance](Js(ap.get))
+        if(appliance.version==version) {
+          val enabledAppliance = new Appliance(
+            appliance.name,
+            appliance.version,
+            appliance.description,
+            appliance.url,
+            appliance.author,
+            true)
+          redis.lset(key, index, tojson[Appliance](enabledAppliance))
+          return xmpp.sendPacket(enable.createResultIQ(enabledAppliance))
+        }
+        index = index + 1
+      }
+    }
+    xmpp.sendPacket(IQ.createResultIQ(enable))
   }
 
   def processApplianceGet(get: ApplianceGet):Unit = {
