@@ -1,7 +1,6 @@
-
 package ir.xamin.providers
 
-import ir.xamin.packet.Search
+import ir.xamin.packet.receive.Search
 import org.jivesoftware.smack.packet.IQ
 import org.jivesoftware.smack.provider.IQProvider
 import org.xmlpull.v1.XmlPullParser

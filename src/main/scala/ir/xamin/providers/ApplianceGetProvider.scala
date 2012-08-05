@@ -1,10 +1,9 @@
 package ir.xamin.providers
 
-import ir.xamin.packet.ApplianceGet
+import ir.xamin.packet.receive.ApplianceGet
 import org.jivesoftware.smack.packet.IQ
 import org.jivesoftware.smack.provider.IQProvider
 import org.xmlpull.v1.XmlPullParser
-import org.xmlpull.v1.XmlPullParser._
 
 class ApplianceGetProvider extends IQProvider {
   def parseIQ(parser: XmlPullParser): IQ = {
@@ -17,6 +16,7 @@ class ApplianceGetProvider extends IQProvider {
         name match {
           case "name" => applianceGet.setName(parser.nextText())
           case "version" => applianceGet.setVersion(parser.nextText())
+          case _ => Unit
         }
       } else if(eventType == XmlPullParser.END_TAG) {
         if(parser.getName() == ApplianceSetProvider.element)

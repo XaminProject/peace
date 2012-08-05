@@ -1,4 +1,4 @@
-package ir.xamin.packet
+package ir.xamin.packet.reply
 
 import ir.xamin.providers.ApplianceInstallProvider
 import ir.xamin.Appliance
@@ -9,25 +9,11 @@ import java.net.URL
 import org.jivesoftware.smack.packet.{IQ, Packet}
 
 class ApplianceInstall extends IQ {
-  private var name:String = _
-  private var version:String = _
   private var base:String = _
   private var appliance:Appliance = _
   private var history = MutableList[Appliance]()
 
-  setType(IQ.Type.SET)
-
-  def getName = name
-
-  def setName(v:String) = name = v
-
-  def getVersion = version
-
-  def setVersion(v:String) = version = v
-
-  def getBase = base
-
-  def setBase(v:String) = base = v
+  setType(IQ.Type.RESULT)
 
   def getAppliance = appliance
 
@@ -36,6 +22,10 @@ class ApplianceInstall extends IQ {
   def getHistory = history
 
   def setHistory(v:MutableList[Appliance]) = history = v
+
+  def getBase = base
+
+  def setBase(v:String) = base = v
 
   def getChildElementXML:String = {
     val ns = ApplianceInstallProvider.namespace
@@ -70,16 +60,6 @@ class ApplianceInstall extends IQ {
       case _ => ""
     }
   }
-
-  def createResultIQ(appliance: Appliance):ApplianceInstall = {
-    val applianceInstall = new ApplianceInstall
-    applianceInstall.setType(IQ.Type.RESULT)
-    applianceInstall.setPacketID(getPacketID())
-    applianceInstall.setFrom(getTo())
-    applianceInstall.setTo(getFrom())
-    applianceInstall.setAppliance(appliance)
-    applianceInstall
-   }
 }
 
 // vim: set ts=4 sw=4 et:

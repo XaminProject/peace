@@ -1,7 +1,8 @@
 package ir.xamin.processors
 
 import ir.xamin.Appliance
-import ir.xamin.packet.{ApplianceSet, ApplianceGet, ApplianceItem, ApplianceInstall, OwnerBehalfSubscribe}
+import ir.xamin.packet.{ApplianceItem, OwnerBehalfSubscribe}
+import ir.xamin.packet.receive.{ApplianceSet, ApplianceGet, ApplianceInstall}
 import scala.collection.mutable.MutableList
 import org.jivesoftware.smack.XMPPConnection
 import com.redis._

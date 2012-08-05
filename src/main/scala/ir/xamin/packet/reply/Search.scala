@@ -1,4 +1,4 @@
-package ir.xamin.packet
+package ir.xamin.packet.reply
 
 import ir.xamin.Appliance
 import scala.xml._
@@ -6,14 +6,9 @@ import scala.collection.mutable.MutableList
 import org.jivesoftware.smack.packet.{Packet, IQ}
 
 class Search extends IQ {
-  private var query:String = _
   private var packages:MutableList[Appliance] = _
 
-  setType(IQ.Type.GET)
-
-  def getQuery = query
-
-  def setQuery(value: String):Unit = query = value
+  setType(IQ.Type.RESULT)
 
   def setPackages(p: MutableList[Appliance]):Unit = packages = p
 
@@ -35,18 +30,7 @@ class Search extends IQ {
           <author>{author}</author>
         </appliance>
     }
-    val xml = <search xmlns="client:search:xamin">{ packagesTag }</search>
-    return xml.toString
-  }
-
-  def createResultIQ(packages: MutableList[Appliance]):Packet = {
-    val search = new Search
-    search.setType(IQ.Type.RESULT)
-    search.setPacketID(getPacketID())
-    search.setFrom(getTo())
-    search.setTo(getFrom())
-    search.setPackages(packages)
-    search
+    <search xmlns="client:search:xamin">{ packagesTag }</search>.toString
   }
 }
 

@@ -1,6 +1,6 @@
 package ir.xamin.providers
 
-import ir.xamin.packet.MarketRemove
+import ir.xamin.packet.receive.MarketRemove
 import scala.collection.mutable.MutableList
 import org.jivesoftware.smack.packet.IQ
 import org.jivesoftware.smack.provider.IQProvider

@@ -1,6 +1,6 @@
 package ir.xamin.providers
 
-import ir.xamin.packet.ApplianceSet
+import ir.xamin.packet.receive.ApplianceSet
 import org.jivesoftware.smack.packet.IQ
 import org.jivesoftware.smack.provider.IQProvider
 import org.xmlpull.v1.XmlPullParser
@@ -20,6 +20,7 @@ class ApplianceSetProvider extends IQProvider {
           case "description" => applianceSet.setDescription(parser.nextText())
           case "url" => applianceSet.setURL(parser.nextText())
           case "author" => applianceSet.setAuthor(parser.nextText())
+          case _ => Unit
         }
       } else if(eventType == XmlPullParser.END_TAG) {
         if(parser.getName() == ApplianceSetProvider.element)
@@ -35,3 +36,4 @@ object ApplianceSetProvider {
   val element = "appliance"
 }
 
+// vim: set ts=4 sw=4 et:

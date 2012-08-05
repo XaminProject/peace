@@ -1,5 +1,6 @@
-package ir.xamin.packet
+package ir.xamin.packet.receive
 
+import ir.xamin.packet.reply.{ApplianceGet => ReplyApplianceGet}
 import ir.xamin.providers.ApplianceGetProvider
 import ir.xamin.Appliance
 import scala.xml._
@@ -8,7 +9,6 @@ import org.jivesoftware.smack.packet.{IQ, Packet}
 class ApplianceGet extends IQ {
   private var name:String = _
   private var version:String = _
-  private var appliance:Appliance = _
 
   setType(IQ.Type.GET)
 
@@ -20,26 +20,16 @@ class ApplianceGet extends IQ {
 
   def setVersion(value: String):Unit = version = value
 
-  def getAppliance = appliance
-
-  def setAppliance(a: Appliance) = appliance = a
-
   def getChildElementXML:String = {
     val ns = ApplianceGetProvider.namespace
-    appliance match {
-      case Appliance(n, v, d, u, a) => <appliance xmlns={ ns }>
-          <name>{ n }</name>
-          <version>{ v }</version>
-          <description>{ d }</description>
-          <author>{ a }</author>
-        </appliance>.toString
-      case _ => ""
-    }
+    <appliance xmlns={ ns }>
+      <name>{name}</name>
+      <version>{version}</version>
+    </appliance>.toString
   }
 
-  def createResultIQ(appliance: Appliance):Packet = {
-    val applianceGet = new ApplianceGet
-    applianceGet.setType(IQ.Type.RESULT)
+  def createResultIQ(appliance: Appliance):ReplyApplianceGet = {
+    val applianceGet = new ReplyApplianceGet
     applianceGet.setPacketID(getPacketID())
     applianceGet.setFrom(getTo())
     applianceGet.setTo(getFrom())

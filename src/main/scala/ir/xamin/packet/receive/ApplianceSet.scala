@@ -1,5 +1,6 @@
-package ir.xamin.packet
+package ir.xamin.packet.receive
 
+import ir.xamin.packet.reply.{ApplianceSet => ReplyApplianceSet}
 import ir.xamin.providers.ApplianceSetProvider
 import ir.xamin.Appliance
 import scala.xml._
@@ -15,24 +16,38 @@ class ApplianceSet extends IQ {
   setType(IQ.Type.SET)
 
   def getName = name
+
   def setName(v:String) = name = v
+
   def getDescription = description
+
   def setDescription(v:String) = description = v
+
   def getVersion = version
+
   def setVersion(v:String) = version = v
+
   def getURL = url
+
   def setURL(v:String) = url = v
+
   def getAuthor = author
+
   def setAuthor(v:String) = author = v
+
   def getChildElementXML:String = {
     val ns = ApplianceSetProvider.namespace
-    return <package xmlns={ ns }>
-        <name>{ name }</name>
-        <description>{ description }</description>
-        <version>{ version }</version>
-        <url>{ url }</url>
-        <author>{ author }</author>
-      </package>.toString
+    <package xmlns={ ns }>
+      <name>{ name }</name>
+      <description>{ description }</description>
+      <version>{ version }</version>
+      <url>{ url }</url>
+      <author>{ author }</author>
+    </package>.toString
+  }
+
+  def buildReply:ReplyApplianceSet = {
+    new ReplyApplianceSet
   }
 }
 

@@ -1,6 +1,6 @@
 package ir.xamin.processors
 
-import ir.xamin.packet.{MarketInstall, MarketRemove}
+import ir.xamin.packet.receive.{MarketInstall, MarketRemove}
 import org.jivesoftware.smack.XMPPConnection
 import com.redis._
 import org.jivesoftware.smack.PacketListener

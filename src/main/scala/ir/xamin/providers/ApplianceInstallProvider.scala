@@ -1,6 +1,6 @@
 package ir.xamin.providers
 
-import ir.xamin.packet.ApplianceInstall
+import ir.xamin.packet.receive.ApplianceInstall
 import org.jivesoftware.smack.packet.IQ
 import org.jivesoftware.smack.provider.IQProvider
 import org.xmlpull.v1.XmlPullParser

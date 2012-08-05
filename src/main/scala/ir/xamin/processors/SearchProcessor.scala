@@ -1,7 +1,7 @@
 package ir.xamin.processors
 
 import ir.xamin.Appliance
-import ir.xamin.packet.Search
+import ir.xamin.packet.receive.Search
 import scala.collection.mutable.MutableList
 import org.jivesoftware.smack.XMPPConnection
 import sjson.json._

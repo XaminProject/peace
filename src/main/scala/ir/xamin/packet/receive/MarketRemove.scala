@@ -1,5 +1,6 @@
-package ir.xamin.packet
+package ir.xamin.packet.receive
 
+import ir.xamin.packet.reply.{MarketRemove => ReplyMarketRemove}
 import ir.xamin.providers.MarketInstallProvider
 import scala.xml._
 import scala.collection.mutable.MutableList
@@ -12,8 +13,11 @@ class MarketRemove extends IQ {
   setType(IQ.Type.SET)
 
   def getRemove = remove
+
   def setRemove(v:MutableList[Tuple2[String, String]]) = remove = v
+
   def getArchipel = archipel
+
   def setArchipel(v:String) = archipel = v
 
   def getChildElementXML:String = {
@@ -25,15 +29,13 @@ class MarketRemove extends IQ {
         val version = appliance._2
         applianceElements += <appliance version={version}>{name}</appliance>
       }
-    return <query xmlns={ns}>
-        <archipel action="remove">
-          {applianceElements}
-        </archipel>
-      </query>.toString
+    <remove from={archipel} xmlns={ns}>
+      {applianceElements}
+    </remove>.toString
   }
 
-  def createResultIQ():Packet = {
-    val marketRemove = new MarketRemove
+  def createResultIQ():ReplyMarketRemove = {
+    val marketRemove = new ReplyMarketRemove
     marketRemove setPacketID getPacketID
     marketRemove setTo getArchipel
     marketRemove setRemove getRemove
