@@ -47,7 +47,11 @@ class ApplianceSet extends IQ {
   }
 
   def buildReply:ReplyApplianceSet = {
-    new ReplyApplianceSet
+    val applianceSet = new ReplyApplianceSet
+    applianceSet setPacketID getPacketID
+    applianceSet setFrom getTo
+    applianceSet setTo getFrom
+    applianceSet
   }
 }
 
