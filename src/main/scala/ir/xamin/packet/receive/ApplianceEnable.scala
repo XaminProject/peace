@@ -30,9 +30,9 @@ class ApplianceEnable extends IQ {
 
   def createResultIQ(appliance: Appliance):ReplyApplianceEnable = {
     val applianceEnable = new ReplyApplianceEnable
-    applianceEnable.setPacketID(getPacketID())
-    applianceEnable.setFrom(getTo())
-    applianceEnable.setTo(getFrom())
+    applianceEnable setPacketID getPacketID
+    applianceEnable setFrom getTo
+    applianceEnable setTo getFrom
     applianceEnable
   }
 }
