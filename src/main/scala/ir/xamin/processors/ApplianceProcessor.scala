@@ -131,6 +131,11 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
     xmpp.sendPacket(new OwnerBehalfSubscribe(xmpp, jid, appliance))
   }
 
+  def applianceInstalled(jid:String, appliance:String):Unit = {
+    redis.sadd("appliance_to_installers:"+appliance, jid)
+    redis.sadd("installer_to_appliances:"+jid, appliance)
+  }
+
   def processApplianceInstall(install: ApplianceInstall):Unit = {
     // lets assume we've 6 5 4 3 2 1 versions for requested package
     // and requested version is 5 and base is 2, we gonna give details
@@ -158,11 +163,13 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
           if(base == null) {
             // user has not specified base so send the result
             subscribeJIDToAppliance(install.getFrom, target.name)
+            applianceInstalled(install.getFrom, target.name)
             return xmpp.sendPacket(install.createResultIQ(target))
           } else {
             if(appliance.version==base) {
               // if we've reached the requested base send the result
               subscribeJIDToAppliance(install.getFrom, target.name)
+              applianceInstalled(install.getFrom, target.name)
               val result = install.createResultIQ(target)
               result setBase base
               result.setHistory(versionHistory)
