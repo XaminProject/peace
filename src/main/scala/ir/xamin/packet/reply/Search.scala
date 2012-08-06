@@ -23,11 +23,13 @@ class Search extends IQ {
       val version = appliance.version
       val description = appliance.description
       val author = appliance.author
+      val tags = appliance.tags.flatMap { s => <tag>{s}</tag> }
       packagesTag += <appliance>
           <name>{name}</name>
           <version>{version}</version>
           <description>{description}</description>
           <author>{author}</author>
+          <tags>{tags}</tags>
         </appliance>
     }
     <search xmlns="client:search:xamin">{ packagesTag }</search>.toString
