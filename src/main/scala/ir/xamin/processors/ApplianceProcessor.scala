@@ -152,7 +152,8 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
             target = appliance
           }
         }
-        // we want to run it on each loop, so don't make it an else
+        // we want to run it on each iteration of loop, so don't make
+        // it an else of above if
         if(target != null) {
           if(base == null) {
             // user has not specified base so send the result
