@@ -10,6 +10,7 @@ class ApplianceSetProvider extends IQProvider {
   def parseIQ(parser: XmlPullParser): IQ = {
     val applianceSet = new ApplianceSet
     var remaining = true
+    var tags = List[String]()
     while(remaining) {
       val eventType = parser.next()
       if(eventType == XmlPullParser.START_TAG) {
@@ -20,6 +21,7 @@ class ApplianceSetProvider extends IQProvider {
           case "description" => applianceSet.setDescription(parser.nextText())
           case "url" => applianceSet.setURL(parser.nextText())
           case "author" => applianceSet.setAuthor(parser.nextText())
+          case "tag" => tags = parser.nextText() :: tags
           case _ => Unit
         }
       } else if(eventType == XmlPullParser.END_TAG) {
@@ -27,6 +29,7 @@ class ApplianceSetProvider extends IQProvider {
           remaining = false
       }
     }
+    applianceSet setTags tags
     applianceSet
   }
 }

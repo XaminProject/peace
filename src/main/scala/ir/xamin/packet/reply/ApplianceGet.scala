@@ -17,12 +17,16 @@ class ApplianceGet extends IQ {
   def getChildElementXML:String = {
     val ns = ApplianceGetProvider.namespace
     appliance match {
-      case Appliance(n, v, d, u, a, e) => <appliance xmlns={ ns }>
+      case Appliance(n, v, d, u, a, e, t) => {
+        val tags = t.flatMap { s => <tag>{s}</tag> }
+        <appliance xmlns={ ns }>
           <name>{ n }</name>
           <version>{ v }</version>
           <description>{ d }</description>
           <author>{ a }</author>
+          <tags>{tags}</tags>
         </appliance>.toString
+      }
       case _ => ""
     }
   }

@@ -12,6 +12,7 @@ class ApplianceSet extends IQ {
   private var version:String = _
   private var url:String = _
   private var author:String = _
+  private var tags:List[String] = _
 
   setType(IQ.Type.SET)
 
@@ -35,14 +36,20 @@ class ApplianceSet extends IQ {
 
   def setAuthor(v:String) = author = v
 
+  def getTags = tags
+
+  def setTags(v:List[String]) = tags = v
+
   def getChildElementXML:String = {
     val ns = ApplianceSetProvider.namespace
+    val _tags = tags.flatMap { s => <tag>{s}</tag> }
     <package xmlns={ ns }>
       <name>{ name }</name>
       <description>{ description }</description>
       <version>{ version }</version>
       <url>{ url }</url>
       <author>{ author }</author>
+      <tags>{_tags}</tags>
     </package>.toString
   }
 

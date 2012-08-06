@@ -4,7 +4,7 @@ import dispatch.json._
 import sjson.json._
 import JsonSerialization._
 
-case class Appliance(name: String, version: String, description: String, url: String, author: String, enabled:Boolean=false)
+case class Appliance(name: String, version: String, description: String, url: String, author: String, enabled:Boolean=false, tags:List[String])
 
 object Appliance extends DefaultProtocol {
   implicit object ApplianceFormat extends Format[Appliance] {
@@ -15,7 +15,9 @@ object Appliance extends DefaultProtocol {
           fromjson[String](m(JsString("description"))),
           fromjson[String](m(JsString("url"))),
           fromjson[String](m(JsString("author"))),
-          fromjson[Boolean](m(JsString("enabled"))))
+          fromjson[Boolean](m(JsString("enabled"))),
+          fromjson[List[String]](m(JsString("tags")))
+        )
       case _ => throw new RuntimeException("JsObject expected")
     }
 
@@ -26,7 +28,8 @@ object Appliance extends DefaultProtocol {
         (tojson("description").asInstanceOf[JsString], tojson(p.description)),
         (tojson("url").asInstanceOf[JsString], tojson(p.url)),
         (tojson("author").asInstanceOf[JsString], tojson(p.author)),
-        (tojson("enabled").asInstanceOf[JsString], tojson(p.enabled)) ))
+        (tojson("enabled").asInstanceOf[JsString], tojson(p.enabled)),
+        (tojson("tags").asInstanceOf[JsString], tojson(p.tags)) ))
   }
 }
 

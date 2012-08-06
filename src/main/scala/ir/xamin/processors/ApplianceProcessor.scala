@@ -51,10 +51,19 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
     }
   }
 
+  def saveTags(appliance: String, tags: List[String]):Unit = {
+    for(tag <- tags)
+    {
+      redis.sadd("tags", tag)
+      redis.sadd("tag:"+tag, appliance)
+    }
+  }
+
   def processApplianceSet(set: ApplianceSet):Unit = {
     val appliance = new Appliance(set.getName, set.getVersion,
-      set.getDescription, set.getURL, set.getAuthor)
+      set.getDescription, set.getURL, set.getAuthor, false, set.getTags)
     val key = "Appliance:"+set.getName
+    saveTags(set.getName, set.getTags)
     val manager = new PubSubManager(xmpp)
     val isNew = !redis.exists(key)
     redis.lpush(key, tojson[Appliance](appliance))
@@ -92,7 +101,9 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
             appliance.description,
             appliance.url,
             appliance.author,
-            true)
+            true,
+            appliance.tags
+          )
           redis.lset(key, index, tojson[Appliance](enabledAppliance))
           return xmpp.sendPacket(enable.createResultIQ(enabledAppliance))
         }
