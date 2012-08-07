@@ -6,7 +6,13 @@ import org.jivesoftware.smack.provider.IQProvider
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParser._
 
+/** this class parses received xml to create an ApplianceSet object
+ */
 class ApplianceSetProvider extends IQProvider {
+  /** parses the received stanza
+   * @param parser the XmlPullParser object of stanza
+   * @return the ApplianceSet representation of stanza
+   */
   def parseIQ(parser: XmlPullParser): IQ = {
     val applianceSet = new ApplianceSet
     var remaining = true

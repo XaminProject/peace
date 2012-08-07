@@ -6,7 +6,13 @@ import org.jivesoftware.smack.packet.IQ
 import org.jivesoftware.smack.provider.IQProvider
 import org.xmlpull.v1.XmlPullParser
 
+/** this class parses received xml stanza as an MarketInstall packet
+ */
 class MarketInstallProvider extends IQProvider {
+  /** parse the received stanza
+   * @param parser the XmlPullParser of received packet
+   * @return the MarketInstall representation of packet
+   */
   def parseIQ(parser: XmlPullParser): IQ = {
     val marketInstall = new MarketInstall
     marketInstall setArchipel parser.getAttributeValue("", "to")

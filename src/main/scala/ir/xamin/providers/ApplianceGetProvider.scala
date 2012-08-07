@@ -5,7 +5,13 @@ import org.jivesoftware.smack.packet.IQ
 import org.jivesoftware.smack.provider.IQProvider
 import org.xmlpull.v1.XmlPullParser
 
+/** this class parses the received packet as an ApplianceGet
+ */
 class ApplianceGetProvider extends IQProvider {
+  /** parse the received stanza
+   * @param parser the XmlPullParser of packet
+   * @return the ApplianceGet presentation of packet
+   */
   def parseIQ(parser: XmlPullParser): IQ = {
     val applianceGet = new ApplianceGet
     var remaining = true
