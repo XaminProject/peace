@@ -6,7 +6,7 @@ import ir.xamin.Appliance
 import scala.xml._
 import org.jivesoftware.smack.packet.{IQ, Packet}
 
-/** a class for enabling an appliance in redis
+/** a class for enabling an appliance
  *
  * after creating an appliance in RMS it tells peace to enable
  * appliance which to say so send us an IQ stanza that this
@@ -20,7 +20,7 @@ class ApplianceEnable extends IQ {
   setType(IQ.Type.GET)
 
   /** getter for name of appliance
-   * @return an string which is name of appliance that has been
+   * @return a string which is name of appliance that has been
    * requested to get enabled
    */
   def getName = name
@@ -31,7 +31,7 @@ class ApplianceEnable extends IQ {
   def setName(value: String):Unit = name = value
 
   /** getter for version of appliance
-   * @return an string which is version of appliance that has been
+   * @return a string which is version of appliance that has been
    * requested to get enabled
    */
   def getVersion = version
