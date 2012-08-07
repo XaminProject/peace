@@ -6,6 +6,16 @@ import com.redis._
 import org.jivesoftware.smack.XMPPConnection
 import org.jivesoftware.smack.provider.ProviderManager
 
+/** initializer of peace
+ * @param host the xmpp host to connect to
+ * @param username the xmpp username
+ * @param password the xmpp password
+ * @param resource the resource of xmpp to use
+ * @param redishost host of redis to connect to
+ * @param redisport port of redis
+ * @param rmsJid jids that can perform rms specific actions
+ * @param marketJid jids that can perform market specific actions
+ */
 class Peace(host: Option[String],
   username: Option[String],
   password: Option[String],
@@ -14,18 +24,26 @@ class Peace(host: Option[String],
   redisport: Option[Int],
   rmsJid: Option[String],
   marketJid: Option[String]) {
+  // connect to redis
   val redis = new RedisClient(redishost.getOrElse("localhost"), redisport.getOrElse(6379))
+  // connect to xmpp server
   val xmpp = new XMPPConnection(host.get)
   xmpp.connect()
+  // authenticate with xmpp server
   xmpp.login(username.get, password.get, resource.getOrElse("peace"))
   val providerManager = ProviderManager.getInstance()
 
+  // split rms / market with comma
   val rms = rmsJid.getOrElse("").split(",")
   val market = marketJid.getOrElse("").split(",")
 
+  // register providers to ProviderManager
   registerIQProviders()
+  // register processors to ProviderManager
   registerProcessors()
 
+  /** registers IQ providers
+   */
   def registerIQProviders() {
     // search
     providerManager.addIQProvider(SearchProvider.element, SearchProvider.namespace, new SearchProvider)
@@ -43,6 +61,8 @@ class Peace(host: Option[String],
     providerManager.addIQProvider(MarketRemoveProvider.element, MarketRemoveProvider.namespace, new MarketRemoveProvider)
   }
 
+  /** registers IQ processors
+   */
   def registerProcessors() {
     // search
     val searchProcessor = new SearchProcessor(redis, xmpp)
@@ -60,11 +80,14 @@ class Peace(host: Option[String],
 }
 
 object Peace {
+  // import argot here, as we'll use it just here
   import org.clapper.argot._
   import org.clapper.argot.ArgotConverters._
 
+  // init argot
   val parser = new ArgotParser("Peace", preUsage=Some("Version 0.0.1"))
 
+  // define options/arguments
   private val host = parser.parameter[String]("hostname", "xmpp server", false)
   private val username = parser.parameter[String]("username", "username pf jid", false)
   private val password = parser.parameter[String]("password", "password to be used for authentication", false)
@@ -74,6 +97,8 @@ object Peace {
   private val rms = parser.option[String](List("s", "rms"), "jid", "jid of rms instances separated by comma")
   private val market = parser.option[String](List("m", "market"), "jid", "jid of market instances separated by comma")
 
+  /** the main entry point of peace
+   */
   def main(args: Array[String]) {
     try {
       parser.parse(args)
@@ -85,8 +110,10 @@ object Peace {
           redisport.value,
           rms.value,
           market.value)
+      // wait for user input then exist the execution
       System.in.read()
     } catch {
+      // some arguments seems to be missing, show the help
       case e: ArgotUsageException => println(e.message)
     }
   }
