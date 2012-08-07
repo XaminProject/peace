@@ -8,12 +8,21 @@ import org.jivesoftware.smack.packet.{Packet, IQ}
 class Search extends IQ {
   private var packages:MutableList[Appliance] = _
 
+  // set type of iq
   setType(IQ.Type.RESULT)
 
+  /** setter for Appliances that matched the search
+   * @param p a list of Appliance that matched the result
+   */
   def setPackages(p: MutableList[Appliance]):Unit = packages = p
 
+  /** getter for Appliances that matched the search
+   * @return a list of Appliance objects
+   */
   def getPackages = packages
 
+  /** creates the inner xml of packet
+   */
   def getChildElementXML:String = {
     var packagesTag = MutableList[Elem]()
     for {
