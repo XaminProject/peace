@@ -12,17 +12,27 @@ import org.jivesoftware.smack.PacketListener
 import org.jivesoftware.smack.packet.{IQ, Packet}
 import org.jivesoftware.smack.filter.{IQTypeFilter, AndFilter, PacketExtensionFilter}
 
+/** this packet processes search requests
+ */
 class SearchProcessor(redisClient: RedisClient, xmppConnection: XMPPConnection) extends PacketListener {
+  // we already have namespace / tag name as filters of this
+  // processor so just checking packet type is enough
   val filter = new IQTypeFilter(IQ.Type.GET)
   val xmpp = xmppConnection
   val redis = redisClient
 
+  /** smack sends us the packets that passed filtering here
+   * @param packet the packet that should be processed
+   */
   def processPacket(packet: Packet):Unit = {
     packet match {
       case search: Search => processSearch(search)
     }
   }
 
+  /** processes Search packets
+   * @param search the packet to be processed
+   */
   def processSearch(search: Search):Unit = {
     val packages = redis.keys("Appliance:"+search.getQuery)
     var appliances = MutableList[Appliance]()

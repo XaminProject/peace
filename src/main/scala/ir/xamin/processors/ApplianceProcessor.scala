@@ -15,7 +15,12 @@ import org.jivesoftware.smack.filter.PacketFilter
 import org.jivesoftware.smack.util.StringUtils
 import org.jivesoftware.smackx.pubsub._
 
+/** this class processes the packets that are prefixed with
+ * Appliance in ir.xamin.packet.receive
+ */
 class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnection, rms: Array[String]) extends PacketListener {
+  /** this objects filters the packets that we can process
+   */
   object filter extends PacketFilter {
     def accept(p: Packet):Boolean = {
       return p match {
@@ -42,6 +47,9 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
   val xmpp = xmppConnection
   val redis = redisClient
 
+  /** smack sends us the packets that we can process here
+   * @param packet the packet that passed filter
+   */
   def processPacket(packet: Packet):Unit = {
     packet match {
       case set: ApplianceSet => processApplianceSet(set)
@@ -51,6 +59,10 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
     }
   }
 
+  /** stores relation between tags and appliance in redis
+   * @param appliance name of appliance
+   * @param tags list of tags
+   */
   def saveTags(appliance: String, tags: List[String]):Unit = {
     for(tag <- tags)
     {
@@ -59,6 +71,9 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
     }
   }
 
+  /** processes the ApplianceSet packet
+   * @param set the packet to be processed
+   */
   def processApplianceSet(set: ApplianceSet):Unit = {
     val appliance = new Appliance(set.getName, set.getVersion,
       set.getDescription, set.getURL, set.getAuthor, false, set.getTags)
@@ -84,6 +99,9 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
     }
   }
 
+  /** processes ApplianceEnable packet
+   * @param enable packet to be processed
+   */
   def processApplianceEnable(enable: ApplianceEnable):Unit = {
     val name = enable.getName
     val version = enable.getVersion
@@ -113,6 +131,9 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
     xmpp.sendPacket(IQ.createResultIQ(enable))
   }
 
+  /** processes ApplianceGet packet
+   * @param get packet to be processed
+   */
   def processApplianceGet(get: ApplianceGet):Unit = {
     val name = get.getName
     val version = get.getVersion
@@ -138,15 +159,27 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
     xmpp.sendPacket(IQ.createResultIQ(get))
   }
 
+  /** subscribes a JID to pubsub node of an Appliance
+   * @param jid a string which is jid that we want to be subscribed to node
+   * @param appliance a string which is name of appliance (=node)
+   */
   def subscribeJIDToAppliance(jid:String, appliance:String):Unit = {
     xmpp.sendPacket(new OwnerBehalfSubscribe(xmpp, jid, appliance))
   }
 
+  /** stores relation of appliance and jids that have installed
+   * the appliance
+   * @param jid a string which is jid of archipel that has installed an appliance
+   * @param appliance a string which is name of appliance that has been installed
+   */
   def applianceInstalled(jid:String, appliance:String):Unit = {
     redis.sadd("appliance_to_installers:"+appliance, jid)
     redis.sadd("installer_to_appliances:"+jid, appliance)
   }
 
+  /** processes ApplianceInstall packets
+   * @param install packet to be processed
+   */
   def processApplianceInstall(install: ApplianceInstall):Unit = {
     // lets assume we've 6 5 4 3 2 1 versions for requested package
     // and requested version is 5 and base is 2, we gonna give details

@@ -8,7 +8,12 @@ import org.jivesoftware.smack.packet.{IQ, Packet}
 import org.jivesoftware.smack.filter.PacketFilter
 import org.jivesoftware.smack.util.StringUtils
 
+/** this class processes all packets that are prefixed with
+ * Market in ir.xamin.packet.receive
+ */
 class MarketProcessor(redisClient:RedisClient, xmppConnection:XMPPConnection, market:Array[String]) extends PacketListener {
+  /** this object filter the packets that we process
+   */
   object filter extends PacketFilter {
     def accept(p: Packet):Boolean = {
       // check if we've whitelist of jid for markets to work with
@@ -26,6 +31,9 @@ class MarketProcessor(redisClient:RedisClient, xmppConnection:XMPPConnection, ma
   val xmpp = xmppConnection
   val redis = redisClient
 
+  /** smack sends us packets that passed the filter here
+   * @param packet the packet that passed the filter
+   */
   def processPacket(packet: Packet):Unit = {
     packet match {
       case i:MarketInstall => processMarketInstall(i)
@@ -33,12 +41,23 @@ class MarketProcessor(redisClient:RedisClient, xmppConnection:XMPPConnection, ma
     }
   }
 
+  /** processes MarketInstall packets which are made by
+   * market based on user request
+   * @param i packet to be processed
+   */
   def processMarketInstall(i: MarketInstall):Unit = {
+    // we just work as a router here, nothing special
     xmpp.sendPacket(i.createResultIQ)
     xmpp.sendPacket(IQ.createResultIQ(i))
   }
 
+  /** processes MarketRemove packets which tells target archipel
+   * to remove appliances (this packet has been made by market
+   * based on user request)
+   * @param r packet to be processed
+   */
   def processMarketRemove(r: MarketRemove):Unit = {
+    // we just work as a router here, nothing special
     xmpp.sendPacket(r.createResultIQ)
     xmpp.sendPacket(IQ.createResultIQ(r))
   }
