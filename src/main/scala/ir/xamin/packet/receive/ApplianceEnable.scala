@@ -42,6 +42,7 @@ class ApplianceEnable extends IQ {
   def setVersion(value: String):Unit = version = value
 
   /** creates innner xml of IQ
+   * @return a string which is inner xml of iq
    */
   def getChildElementXML:String = {
     val ns = ApplianceEnableProvider.namespace
@@ -52,7 +53,7 @@ class ApplianceEnable extends IQ {
   }
 
   /** creates response to this request
-   * @param the enabled applinance
+   * @param appliance the enabled applinance
    * @return the response
    */
   def createResultIQ(appliance: Appliance):ReplyApplianceEnable = {
