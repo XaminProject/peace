@@ -28,6 +28,9 @@ class ApplianceSetProvider extends IQProvider {
           case "url" => applianceSet.setURL(parser.nextText())
           case "author" => applianceSet.setAuthor(parser.nextText())
           case "tag" => tags = parser.nextText() :: tags
+          case "cpu" => applianceSet.setCPU(parser.nextText().toInt)
+          case "memory" => applianceSet.setMemory(parser.nextText().toInt)
+          case "storage" => applianceSet.setStorage(parser.nextText().toInt)
           case _ => Unit
         }
       } else if(eventType == XmlPullParser.END_TAG) {

@@ -75,7 +75,7 @@ class ApplianceInstall extends IQ {
     if(!versionHistory.isEmpty)
       historyElement = <history>{ versionHistory }</history>
     appliance match {
-      case Appliance(n, v, d, u, a, e, t) => {
+      case Appliance(n, v, d, u, a, e, t, c, m, s) => {
         val tags = t.flatMap { s => <tag>{s}</tag> }
         <appliance xmlns={ ns }>
           <name>{ n }</name>
@@ -84,6 +84,9 @@ class ApplianceInstall extends IQ {
           <author>{ a }</author>
           <url>{ u }</url>
           <tags>{tags}</tags>
+          <cpu>{c}</cpu>
+          <memory>{m}</memory>
+          <storage>{s}</storage>
           { historyElement }
         </appliance>.toString
       }

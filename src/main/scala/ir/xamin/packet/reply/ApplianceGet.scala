@@ -30,7 +30,7 @@ class ApplianceGet extends IQ {
   def getChildElementXML:String = {
     val ns = ApplianceGetProvider.namespace
     appliance match {
-      case Appliance(n, v, d, u, a, e, t) => {
+      case Appliance(n, v, d, u, a, e, t, c, m, s) => {
         val tags = t.flatMap { s => <tag>{s}</tag> }
         <appliance xmlns={ ns }>
           <name>{ n }</name>
@@ -38,6 +38,9 @@ class ApplianceGet extends IQ {
           <description>{ d }</description>
           <author>{ a }</author>
           <tags>{tags}</tags>
+          <cpu>{c}</cpu>
+          <memory>{m}</memory>
+          <storage>{s}</storage>
         </appliance>.toString
       }
       case _ => ""
