@@ -175,10 +175,11 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
    * the appliance
    * @param jid a string which is jid of archipel that has installed an appliance
    * @param appliance a string which is name of appliance that has been installed
+   * @param version a string which is version of appliance that has been installed
    */
-  def applianceInstalled(jid:String, appliance:String):Unit = {
-    redis.sadd("appliance_to_installers:"+appliance, jid)
-    redis.sadd("installer_to_appliances:"+jid, appliance)
+  def applianceInstalled(jid:String, appliance:String, version:String):Unit = {
+    redis.sadd("appliance_to_installers:"+appliance+":"+version, jid)
+    redis.sadd("installer_to_appliances:"+jid, appliance+":"+version)
   }
 
   /** processes ApplianceInstall packets
@@ -211,13 +212,13 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
           if(base == null) {
             // user has not specified base so send the result
             subscribeJIDToAppliance(install.getFrom, target.name)
-            applianceInstalled(install.getFrom, target.name)
+            applianceInstalled(install.getFrom, target.name, target.version)
             return xmpp.sendPacket(install.createResultIQ(target))
           } else {
             if(appliance.version==base) {
               // if we've reached the requested base send the result
               subscribeJIDToAppliance(install.getFrom, target.name)
-              applianceInstalled(install.getFrom, target.name)
+              applianceInstalled(install.getFrom, target.name, target.version)
               val result = install.createResultIQ(target)
               result setBase base
               result.setHistory(versionHistory)
