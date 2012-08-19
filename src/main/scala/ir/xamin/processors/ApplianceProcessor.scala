@@ -83,7 +83,10 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
     saveTags(set.getName, set.getVersion, set.getTags)
     val manager = new PubSubManager(xmpp)
     val isNew = !redis.exists(key)
+    // index of specific version from end of list
+    val versionRightIndex = redis.llen(key)
     redis.lpush(key, tojson[Appliance](appliance))
+    redis.set(key+":"+appliance.version, versionRightIndex)
     xmpp.sendPacket(IQ.createResultIQ(set))
     if(isNew) {
       val form = new ConfigureForm(FormType.submit)
