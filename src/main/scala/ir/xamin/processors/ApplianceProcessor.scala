@@ -146,23 +146,18 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
     val name = get.getName
     val version = get.getVersion
     val key = "Appliance:"+name
-    if(version == null) {
-      val lastVersion = redis.lindex(key, 0)
-      if(!lastVersion.isEmpty){
-        val appliance = fromjson[Appliance](Js(lastVersion.get))
-        return xmpp.sendPacket(get.createResultIQ(appliance))
-      }
-    } else {
-      val len = redis.llen(key)
-      if(!len.isEmpty) {
-        val allVersions = redis.lrange(key, 0, len.get-1)
-        for (ap <- allVersions.get) {
-          val appliance = fromjson[Appliance](Js(ap.get))
-          if(appliance.version==version) {
-            return xmpp.sendPacket(get.createResultIQ(appliance))
-          }
-        }
-      }
+    var index = 0
+    if(version != null){
+      val indexTmp = redis.get(key+":"+version)
+      if(indexTmp.isEmpty)
+        return xmpp.sendPacket(IQ.createResultIQ(get))
+      val len = redis.llen(key).get
+      index = len-indexTmp.get.toInt-1
+    }
+    val encodedAppliance = redis.lindex(key, index)
+    if(!encodedAppliance.isEmpty){
+      val appliance = fromjson[Appliance](Js(encodedAppliance.get))
+      return xmpp.sendPacket(get.createResultIQ(appliance))
     }
     xmpp.sendPacket(IQ.createResultIQ(get))
   }
