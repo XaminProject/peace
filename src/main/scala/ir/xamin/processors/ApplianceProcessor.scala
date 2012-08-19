@@ -72,6 +72,15 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
     }
   }
 
+  /** stores relation between appliance and author in redis
+   * @param appliance name of appliance
+   * @param version of appliance
+   * @param author
+   */
+  def saveAuthor(appliance:String, version:String, author:String):Unit = {
+    redis.sadd("Author:"+author, appliance+":"+version)
+  }
+
   /** processes the ApplianceSet packet
    * @param set the packet to be processed
    */
@@ -80,7 +89,10 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
       set.getDescription, set.getURL, set.getAuthor, false, set.getTags,
       set.getCPU, set.getMemory, set.getStorage)
     val key = "Appliance:"+set.getName
+    // save relation of appliance <-> tags
     saveTags(set.getName, set.getVersion, set.getTags)
+    // save relation of appliance <-> author
+    saveAuthor(set.getName, set.getVersion, set.getAuthor)
     val manager = new PubSubManager(xmpp)
     val isNew = !redis.exists(key)
     // index of specific version from end of list
