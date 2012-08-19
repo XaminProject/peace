@@ -112,28 +112,28 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
     val version = enable.getVersion
     val key = "Appliance:"+name
     val len = redis.llen(key)
-    if(!len.isEmpty) {
-      val allVersions = redis.lrange(key, 0, len.get-1)
-      var index = 0
-      for (ap <- allVersions.get) {
+    val index = redis.get(key+":"+version)
+    if(!index.isEmpty) {
+      // the index contains number of items we need to pass from
+      // end of list, we need to convert it to index from start
+      val leftIndex = len.get-1-index.get.toInt
+      val ap = redis.lindex(key, leftIndex)
+      if(!ap.isEmpty) {
         val appliance = fromjson[Appliance](Js(ap.get))
-        if(appliance.version==version) {
-          val enabledAppliance = new Appliance(
-            appliance.name,
-            appliance.version,
-            appliance.description,
-            appliance.url,
-            appliance.author,
-            true,
-            appliance.tags,
-            appliance.cpu,
-            appliance.memory,
-            appliance.storage
-          )
-          redis.lset(key, index, tojson[Appliance](enabledAppliance))
-          return xmpp.sendPacket(enable.createResultIQ(enabledAppliance))
-        }
-        index = index + 1
+        val enabledAppliance = new Appliance(
+          appliance.name,
+          appliance.version,
+          appliance.description,
+          appliance.url,
+          appliance.author,
+          true,
+          appliance.tags,
+          appliance.cpu,
+          appliance.memory,
+          appliance.storage
+        )
+        redis.lset(key, leftIndex, tojson[Appliance](enabledAppliance))
+        return xmpp.sendPacket(enable.createResultIQ(enabledAppliance))
       }
     }
     xmpp.sendPacket(IQ.createResultIQ(enable))
