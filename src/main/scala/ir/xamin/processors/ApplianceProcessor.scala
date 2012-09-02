@@ -78,7 +78,7 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
    * @param author
    */
   def saveAuthor(appliance:String, version:String, author:String):Unit = {
-    redis.sadd("Author:"+author, appliance+":"+version)
+    redis.sadd("author_to_appliance:"+author, appliance+":"+version)
   }
 
   /** processes the ApplianceSet packet
