@@ -98,7 +98,7 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
     // index of specific version from end of list
     val versionRightIndex = redis.llen(key)
     redis.lpush(key, tojson[Appliance](appliance))
-    redis.set(key+":"+appliance.version, versionRightIndex)
+    redis.set("appliance_version_to_index:"+appliance.name+":"+appliance.version, versionRightIndex)
     xmpp.sendPacket(IQ.createResultIQ(set))
     if(isNew) {
       val form = new ConfigureForm(FormType.submit)
@@ -124,7 +124,7 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
     val version = enable.getVersion
     val key = "Appliance:"+name
     val len = redis.llen(key)
-    val index = redis.get(key+":"+version)
+    val index = redis.get("appliance_version_to_index:"+name+":"+version)
     if(!index.isEmpty) {
       // the index contains number of items we need to pass from
       // end of list, we need to convert it to index from start
@@ -160,7 +160,7 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
     val key = "Appliance:"+name
     var index = 0
     if(version != null){
-      val indexTmp = redis.get(key+":"+version)
+      val indexTmp = redis.get("appliance_version_to_index:"+name+":"+version)
       if(indexTmp.isEmpty)
         return xmpp.sendPacket(IQ.createResultIQ(get))
       val len = redis.llen(key).get
