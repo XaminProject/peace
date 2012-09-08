@@ -87,7 +87,7 @@ object Peace {
   import org.clapper.argot.ArgotConverters._
 
   // init argot
-  val parser = new ArgotParser("Peace", preUsage=Some("Version 0.0.2"))
+  val parser = new ArgotParser("Peace", preUsage=Some("Version 0.1.0"))
 
   // define options/arguments
   private val host = parser.parameter[String]("hostname", "xmpp server", false)
