@@ -2,7 +2,7 @@ package ir.xamin.processors
 
 import ir.xamin.Appliance
 import ir.xamin.packet.{ApplianceItem, OwnerBehalfSubscribe}
-import ir.xamin.packet.receive.{ApplianceSet, ApplianceGet, ApplianceInstall, ApplianceEnable}
+import ir.xamin.packet.receive.{ApplianceSet, ApplianceGet, ApplianceInstall, ApplianceEnable, ApplianceRemoved}
 import scala.collection.mutable.MutableList
 import org.jivesoftware.smack.XMPPConnection
 import com.redis._
@@ -40,6 +40,7 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
             false
         }
         case p:ApplianceInstall => true
+        case p:ApplianceRemoved => true
         case _ => false
       }
     }
@@ -56,6 +57,7 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
       case enable: ApplianceEnable => processApplianceEnable(enable)
       case get: ApplianceGet => processApplianceGet(get)
       case install: ApplianceInstall => processApplianceInstall(install)
+      case removed: ApplianceRemoved => processApplianceRemoved(removed)
     }
   }
 
@@ -151,6 +153,27 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
     xmpp.sendPacket(IQ.createResultIQ(enable))
   }
 
+  /** processes ApplianceRemoved packet
+   * @param removed packet to be processed
+   */
+  def processApplianceRemoved(removed: ApplianceRemoved):Unit = {
+    val name = removed.getName
+    val version = removed.getVersion
+    val key = "Appliance:"+name
+    val indexTmp = redis.get("appliance_version_to_index:"+name+":"+version)
+    if(indexTmp.isEmpty)
+      return xmpp.sendPacket(IQ.createResultIQ(removed))
+    val len = redis.llen(key).get
+    val index = len-indexTmp.get.toInt-1
+    val encodedAppliance = redis.lindex(key, index)
+    if(!encodedAppliance.isEmpty){
+      val appliance = fromjson[Appliance](Js(encodedAppliance.get))
+      applianceRemoved(removed.getFrom, name, version)
+      return xmpp.sendPacket(removed.createResultIQ(appliance))
+    }
+    xmpp.sendPacket(IQ.createResultIQ(removed))
+  }
+
   /** processes ApplianceGet packet
    * @param get packet to be processed
    */
@@ -191,6 +214,17 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
   def applianceInstalled(jid:String, appliance:String, version:String):Unit = {
     redis.sadd("appliance_to_installers:"+appliance+":"+version, jid)
     redis.sadd("installer_to_appliances:"+jid, appliance+":"+version)
+  }
+
+  /** removes relation between appliance and jid that previously
+   * has installed the appliance
+   * @param jid a string which is jid of archipel that removed the appliance
+   * @param appliance the name of removed appliance
+   * @param version the version of removed appliance
+   */
+  def applianceRemoved(jid:String, appliance:String, version:String):Unit = {
+    redis.srem("appliance_to_installers:"+appliance+":"+version, jid)
+    redis.srem("installer_to_appliances:"+jid, appliance+":"+version)
   }
 
   /** processes ApplianceInstall packets
