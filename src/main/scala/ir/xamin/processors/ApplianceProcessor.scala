@@ -6,6 +6,7 @@ import ir.xamin.packet.receive.{ApplianceSet, ApplianceGet, ApplianceInstall, Ap
 import scala.collection.mutable.MutableList
 import org.jivesoftware.smack.XMPPConnection
 import com.redis._
+import com.github.seratch.scalikesolr._
 import sjson.json._
 import dispatch.json._
 import JsonSerialization._
@@ -18,7 +19,7 @@ import org.jivesoftware.smackx.pubsub._
 /** this class processes the packets that are prefixed with
  * Appliance in ir.xamin.packet.receive
  */
-class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnection, rms: Array[String]) extends PacketListener {
+class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnection, solrClient: SolrClient, rms: Array[String]) extends PacketListener {
   /** this objects filters the packets that we can process
    */
   object filter extends PacketFilter {
@@ -47,6 +48,7 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
   }
   val xmpp = xmppConnection
   val redis = redisClient
+  val solr = solrClient
 
   /** smack sends us the packets that we can process here
    * @param packet the packet that passed filter
@@ -83,6 +85,25 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
     redis.sadd("author_to_appliance:"+author, appliance+":"+version)
   }
 
+  /**
+   * stores appliance documents into solr
+   * @param appliance the json presentation of appliance that should be updated
+   */
+  def updateSolr(appliance:Appliance):Unit = {
+    var json = tojson[Appliance](appliance).toString
+    val id = "\"id\":\""+appliance.name+":"+appliance.version+"\","
+    json = "{"+id+json.substring(1)
+    val request = new UpdateRequest(
+      writerType=WriterType.JSON,
+      requestBody=json )
+    try {
+      val response = solr.doUpdateInJSON(request)
+      solr.doCommit(new UpdateRequest)
+    } catch {
+      case e:Exception => println(e)
+    }
+  }
+
   /** processes the ApplianceSet packet
    * @param set the packet to be processed
    */
@@ -100,7 +121,7 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
     // index of specific version from end of list
     val versionRightIndex = redis.llen(key)
     redis.lpush(key, tojson[Appliance](appliance))
-    redis.set("appliance_version_to_index:"+appliance.name+":"+appliance.version, versionRightIndex)
+    redis.set("appliance_version_to_index:"+appliance.name+":"+appliance.version, versionRightIndex.get)
     xmpp.sendPacket(IQ.createResultIQ(set))
     if(isNew) {
       val form = new ConfigureForm(FormType.submit)
@@ -147,6 +168,7 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
           appliance.storage
         )
         redis.lset(key, leftIndex, tojson[Appliance](enabledAppliance))
+        updateSolr(enabledAppliance)
         return xmpp.sendPacket(enable.createResultIQ(enabledAppliance))
       }
     }

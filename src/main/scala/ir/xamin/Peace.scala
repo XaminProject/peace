@@ -3,8 +3,10 @@ package ir.xamin
 import providers._
 import processors._
 import com.redis._
+import com.github.seratch.scalikesolr._
 import org.jivesoftware.smack.XMPPConnection
 import org.jivesoftware.smack.provider.ProviderManager
+import java.net.URL
 
 /** initializer of peace
  * @param host the xmpp host to connect to
@@ -13,6 +15,7 @@ import org.jivesoftware.smack.provider.ProviderManager
  * @param resource the resource of xmpp to use
  * @param redishost host of redis to connect to
  * @param redisport port of redis
+ * @param solrRestAPI address of solr's REST-API
  * @param rmsJid jids that can perform rms specific actions
  * @param marketJid jids that can perform market specific actions
  */
@@ -22,10 +25,13 @@ class Peace(host: Option[String],
   resource: Option[String],
   redishost: Option[String],
   redisport: Option[Int],
+  solrRestAPI: Option[String],
   rmsJid: Option[String],
   marketJid: Option[String]) {
   // connect to redis
   val redis = new RedisClient(redishost.getOrElse("localhost"), redisport.getOrElse(6379))
+  // connect to solr
+  val solr = Solr.httpServer(new URL(solrRestAPI.getOrElse("http://localhost:8983/solr"))).newClient
   // connect to xmpp server
   val xmpp = new XMPPConnection(host.get)
   xmpp.connect()
@@ -67,15 +73,15 @@ class Peace(host: Option[String],
    */
   def registerProcessors() {
     // search
-    val searchProcessor = new SearchProcessor(redis, xmpp)
+    val searchProcessor = new SearchProcessor(redis, xmpp, solr)
     xmpp.createPacketCollector(searchProcessor.filter)
     xmpp.addPacketListener(searchProcessor, searchProcessor.filter)
     // Appliance (set/get/install/enable/removed)
-    val applianceProcessor = new ApplianceProcessor(redis, xmpp, rms)
+    val applianceProcessor = new ApplianceProcessor(redis, xmpp, solr, rms)
     xmpp.createPacketCollector(applianceProcessor.filter)
     xmpp.addPacketListener(applianceProcessor, applianceProcessor.filter)
     // market (install/remove)
-    val marketProcessor = new MarketProcessor(redis, xmpp, market)
+    val marketProcessor = new MarketProcessor(redis, xmpp, solr, market)
     xmpp.createPacketCollector(marketProcessor.filter)
     xmpp.addPacketListener(marketProcessor, marketProcessor.filter)
   }
@@ -96,6 +102,7 @@ object Peace {
   private val resource = parser.parameter[String]("resource", "resource of jid", true)
   private val redishost = parser.option[String](List("r", "redishost"), "localhost", "redis host")
   private val redisport = parser.option[Int](List("p", "redisport"), "6379", "redis port")
+  private val solr = parser.option[String](List("l", "solr"), "http://localhost:8983/solr", "solr's REST-API address")
   private val rms = parser.option[String](List("s", "rms"), "jid", "jid of rms instances separated by comma")
   private val market = parser.option[String](List("m", "market"), "jid", "jid of market instances separated by comma")
 
@@ -110,6 +117,7 @@ object Peace {
           resource.value,
           redishost.value,
           redisport.value,
+          solr.value,
           rms.value,
           market.value)
       // wait for user input then exist the execution

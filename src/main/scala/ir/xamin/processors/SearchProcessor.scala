@@ -8,18 +8,20 @@ import sjson.json._
 import dispatch.json._
 import JsonSerialization._
 import com.redis._
+import com.github.seratch.scalikesolr._
 import org.jivesoftware.smack.PacketListener
 import org.jivesoftware.smack.packet.{IQ, Packet}
 import org.jivesoftware.smack.filter.{IQTypeFilter, AndFilter, PacketExtensionFilter}
 
 /** this packet processes search requests
  */
-class SearchProcessor(redisClient: RedisClient, xmppConnection: XMPPConnection) extends PacketListener {
+class SearchProcessor(redisClient: RedisClient, xmppConnection: XMPPConnection, solrClient: SolrClient) extends PacketListener {
   // we already have namespace / tag name as filters of this
   // processor so just checking packet type is enough
   val filter = new IQTypeFilter(IQ.Type.GET)
   val xmpp = xmppConnection
   val redis = redisClient
+  val solr = solrClient
 
   /** smack sends us the packets that passed filtering here
    * @param packet the packet that should be processed
