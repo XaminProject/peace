@@ -93,11 +93,13 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
     var json = tojson[Appliance](appliance).toString
     val id = "\"id\":\""+appliance.name+":"+appliance.version+"\","
     json = "{"+id+json.substring(1)
-    val request = new UpdateRequest(
+    val request = new UpdateRequest()
+    val document = SolrDocument(
       writerType=WriterType.JSON,
-      requestBody=json )
+      rawBody=json )
+    request.documents = List(document)
     try {
-      val response = solr.doUpdateInJSON(request)
+      val response = solr.doUpdateDocuments(request)
       solr.doCommit(new UpdateRequest)
     } catch {
       case e:Exception => println(e)
