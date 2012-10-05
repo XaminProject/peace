@@ -114,8 +114,6 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
       set.getDescription, set.getURL, set.getAuthor, false, set.getTags,
       set.getCPU, set.getMemory, set.getStorage)
     val key = "Appliance:"+set.getName
-    // save relation of appliance <-> tags
-    saveTags(set.getName, set.getVersion, set.getTags)
     // save relation of appliance <-> author
     saveAuthor(set.getName, set.getVersion, set.getAuthor)
     val manager = new PubSubManager(xmpp)
@@ -153,6 +151,8 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
       val ap = getAppliance(name, index.get)
       if(!ap.isEmpty) {
         val appliance = ap.get
+        // save relation of appliance <-> tags
+        saveTags(name, version, appliance.tags)
         val enabledAppliance = new Appliance(
           appliance.name,
           appliance.version,
