@@ -63,29 +63,40 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
     }
   }
 
+  /** returns current rating of appliance
+   * @param name the name of appliance
+   * @return rating
+   */
+  def getApplianceRating(name:String):Int = {
+    val rating = redis.zscore("ratings", name)
+    if(rating.isEmpty)
+      0
+    else
+      rating.get.toInt
+  }
+
   /** stores relation between tags and appliance in redis
    * @param appliance name of appliance
-   * @param version of appliance
    * @param tags list of tags
    */
-  def saveTags(appliance:String, version:String, tags:List[String]):Unit = {
+  def saveTags(appliance:String, tags:List[String]):Unit = {
+    val rating = getApplianceRating(appliance)
     for(tag <- tags)
     {
-      redis.sadd("tags", tag)
-      redis.sadd("tag:"+tag, appliance+":"+version)
+      redis.zincrby("tags", 1, tag)
+      redis.zadd("tag:"+tag, rating, appliance)
     }
   }
 
   /** removes relation between tags and appliances in redis
    * @param name the name of appliance
-   * @param version the version of appliance
    * @param tags list of tags
    */
-  def removeTags(name:String, version:String, tags:List[String]):Unit = {
+  def removeTags(name:String, tags:List[String]):Unit = {
     for(tag <- tags)
     {
-      redis.srem("tags", tag)
-      redis.srem("tag:"+tag, name+":"+version)
+      redis.zincrby("tags", -1, tag)
+      redis.zrem("tag:"+tag, name)
     }
   }
 
@@ -167,10 +178,10 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
         val previousVersion = getAppliance(name, index.get+1)
         if (!previousVersion.isEmpty) {
           // remove tags of prevous version
-          removeTags(name, version, previousVersion.get.tags)
+          removeTags(name, previousVersion.get.tags)
         }
         // save relation of appliance <-> tags
-        saveTags(name, version, appliance.tags)
+        saveTags(name, appliance.tags)
         val enabledAppliance = new Appliance(
           appliance.name,
           appliance.version,
