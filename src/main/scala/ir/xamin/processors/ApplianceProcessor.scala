@@ -148,15 +148,11 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
     val name = enable.getName
     val version = enable.getVersion
     val key = "Appliance:"+name
-    val len = redis.llen(key)
-    val index = redis.get("appliance_version_to_index:"+name+":"+version)
+    val index = getApplianceIndex(name, version)
     if(!index.isEmpty) {
-      // the index contains number of items we need to pass from
-      // end of list, we need to convert it to index from start
-      val leftIndex = len.get-1-index.get.toInt
-      val ap = redis.lindex(key, leftIndex)
+      val ap = getAppliance(name, index.get)
       if(!ap.isEmpty) {
-        val appliance = fromjson[Appliance](Js(ap.get))
+        val appliance = ap.get
         val enabledAppliance = new Appliance(
           appliance.name,
           appliance.version,
@@ -169,7 +165,7 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
           appliance.memory,
           appliance.storage
         )
-        redis.lset(key, leftIndex, tojson[Appliance](enabledAppliance))
+        redis.lset(key, index.get, tojson[Appliance](enabledAppliance))
         updateSolr(enabledAppliance)
         return xmpp.sendPacket(enable.createResultIQ(enabledAppliance))
       }
@@ -198,27 +194,66 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
     xmpp.sendPacket(IQ.createResultIQ(removed))
   }
 
+  /** fetches index of Appliance based on name / version
+   * @param name the name of appliance
+   * @param version the version of appliance
+   * @return index
+   */
+  def getApplianceIndex(name:String, version:String):Option[Int] = {
+    val key = "Appliance:"+name
+    var index = 0
+    if(version != null){
+      val indexTmp = redis.get("appliance_version_to_index:"+name+":"+version)
+      if(!indexTmp.isEmpty){
+        // the index contains number of items we need to pass from
+        // end of list, we need to convert it to index from start
+        val len = redis.llen(key).get
+        return Some(len-indexTmp.get.toInt-1)
+      }
+    }
+    return None
+  }
+
+  /** fetches Appliance based on name / version
+   * @param name the name of appliance
+   * @param version the version of appliance
+   * @return appliance
+   */
+  def getAppliance(name:String, version:String):Option[Appliance] = {
+    val key = "Appliance:"+name
+    val index = getApplianceIndex(name, version)
+    if(index.isEmpty)
+      return None
+    return getAppliance(key, index.get)
+  }
+
+  /** fetches Appliance based on name / index
+   * @param name the name of appliance
+   * @param index the index of appliance in list
+   * @return appliance
+   */
+  def getAppliance(name:String, index:Int):Option[Appliance] = {
+    val key = "Appliance:"+name
+    val encodedAppliance = redis.lindex(key, index)
+    if(!encodedAppliance.isEmpty){
+      val appliance = fromjson[Appliance](Js(encodedAppliance.get))
+      return Some(appliance)
+    }
+    return None
+  }
+
   /** processes ApplianceGet packet
    * @param get packet to be processed
    */
   def processApplianceGet(get: ApplianceGet):Unit = {
     val name = get.getName
     val version = get.getVersion
-    val key = "Appliance:"+name
-    var index = 0
-    if(version != null){
-      val indexTmp = redis.get("appliance_version_to_index:"+name+":"+version)
-      if(indexTmp.isEmpty)
-        return xmpp.sendPacket(IQ.createResultIQ(get))
-      val len = redis.llen(key).get
-      index = len-indexTmp.get.toInt-1
+    val appliance = getAppliance(name, version)
+    if(appliance.isEmpty){
+      xmpp.sendPacket(IQ.createResultIQ(get))
+    } else {
+      xmpp.sendPacket(get.createResultIQ(appliance.get))
     }
-    val encodedAppliance = redis.lindex(key, index)
-    if(!encodedAppliance.isEmpty){
-      val appliance = fromjson[Appliance](Js(encodedAppliance.get))
-      return xmpp.sendPacket(get.createResultIQ(appliance))
-    }
-    xmpp.sendPacket(IQ.createResultIQ(get))
   }
 
   /** subscribes a JID to pubsub node of an Appliance
