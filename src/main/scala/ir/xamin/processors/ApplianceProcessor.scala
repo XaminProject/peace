@@ -76,6 +76,19 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
     }
   }
 
+  /** removes relation between tags and appliances in redis
+   * @param name the name of appliance
+   * @param version the version of appliance
+   * @param tags list of tags
+   */
+  def removeTags(name:String, version:String, tags:List[String]):Unit = {
+    for(tag <- tags)
+    {
+      redis.srem("tags", tag)
+      redis.srem("tag:"+tag, name+":"+version)
+    }
+  }
+
   /** stores relation between appliance and author in redis
    * @param appliance name of appliance
    * @param version of appliance
@@ -151,6 +164,11 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
       val ap = getAppliance(name, index.get)
       if(!ap.isEmpty) {
         val appliance = ap.get
+        val previousVersion = getAppliance(name, index.get+1)
+        if (!previousVersion.isEmpty) {
+          // remove tags of prevous version
+          removeTags(name, version, previousVersion.get.tags)
+        }
         // save relation of appliance <-> tags
         saveTags(name, version, appliance.tags)
         val enabledAppliance = new Appliance(
