@@ -143,6 +143,7 @@ class ApplianceSet extends IQ {
   def getChildElementXML:String = {
     val ns = ApplianceSetProvider.namespace
     val _tags = tags.flatMap { s => <tag>{s}</tag> }
+    val _images = images.flatMap { s => <image>{s}</image> }
     <package xmlns={ ns }>
       <name>{ name }</name>
       <description>{ description }</description>
@@ -154,6 +155,7 @@ class ApplianceSet extends IQ {
       <storage>{storage}</storage>
       <tags>{_tags}</tags>
       <category>{category}</category>
+      <images>{_images}</images>
     </package>.toString
   }
 
