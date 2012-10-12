@@ -146,7 +146,8 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
   def processApplianceSet(set: ApplianceSet):Unit = {
     val appliance = new Appliance(set.getName, set.getVersion,
       set.getDescription, set.getURL, set.getAuthor, false, set.getTags,
-      set.getCPU, set.getMemory, set.getStorage, set.getCategory)
+      set.getCPU, set.getMemory, set.getStorage, set.getCategory,
+      set.getImages)
     val key = "Appliance:"+set.getName
     // save relation of appliance <-> author
     saveAuthor(set.getName, set.getVersion, set.getAuthor)
@@ -204,7 +205,8 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
           appliance.cpu,
           appliance.memory,
           appliance.storage,
-          appliance.category
+          appliance.category,
+          appliance.images
         )
         redis.lset(key, index.get, tojson[Appliance](enabledAppliance))
         updateSolr(enabledAppliance)

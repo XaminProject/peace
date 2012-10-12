@@ -17,6 +17,7 @@ class ApplianceSetProvider extends IQProvider {
     val applianceSet = new ApplianceSet
     var remaining = true
     var tags = List[String]()
+    var images = List[String]()
     while(remaining) {
       val eventType = parser.next()
       if(eventType == XmlPullParser.START_TAG) {
@@ -32,6 +33,7 @@ class ApplianceSetProvider extends IQProvider {
           case "memory" => applianceSet.setMemory(parser.nextText().toInt)
           case "storage" => applianceSet.setStorage(parser.nextText().toInt)
           case "category" => applianceSet.setCategory(parser.nextText())
+          case "images" => images = parser.nextText() :: images
           case _ => Unit
         }
       } else if(eventType == XmlPullParser.END_TAG) {
@@ -40,6 +42,7 @@ class ApplianceSetProvider extends IQProvider {
       }
     }
     applianceSet setTags tags
+    applianceSet setImages images
     applianceSet
   }
 }
