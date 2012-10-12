@@ -113,11 +113,17 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
 
   /** stores relation between appliance and author in redis
    * @param appliance name of appliance
-   * @param version of appliance
    * @param author
    */
-  def saveAuthor(appliance:String, version:String, author:String):Unit = {
-    redis.sadd("author_to_appliance:"+author, appliance+":"+version)
+  def saveAuthor(appliance:String, author:String):Unit = {
+    val key = "author_to_appliance:"+author;
+    redis.sadd(key, appliance)
+    val appliances = redis.smembers(key).get
+    var total = 0
+    for (name <- appliances) {
+      total += getApplianceRating(name.get).toInt
+    }
+    redis.zadd("Authors", total, author)
   }
 
   /**
@@ -151,7 +157,7 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
       set.getImages, set.getIcon, platform.currentTime)
     val key = "Appliance:"+set.getName
     // save relation of appliance <-> author
-    saveAuthor(set.getName, set.getVersion, set.getAuthor)
+    saveAuthor(set.getName, set.getAuthor)
     val manager = new PubSubManager(xmpp)
     val isNew = !redis.exists(key)
     // index of specific version from end of list
