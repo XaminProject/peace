@@ -8,7 +8,7 @@ import JsonSerialization._
  */
 case class Appliance(name:String, version:String, description:String, url:String,
   author:String, enabled:Boolean, tags:List[String], cpu:Int, memory:Int, storage:Int,
-  category:String, images:List[String])
+  category:String, images:List[String], icon:String)
 
 /** companion object of Appliance to provide json conversion of Appliance
  */
@@ -31,7 +31,8 @@ object Appliance extends DefaultProtocol {
           fromjson[Int](m.getOrElse(JsString("memory"), JsNumber(64))),
           fromjson[Int](m.getOrElse(JsString("storage"), JsNumber(8))),
           fromjson[String](m.getOrElse(JsString("category"), JsString("others"))),
-          fromjson[List[String]](m.getOrElse(JsString("images"), JsArray(List[JsValue]())))
+          fromjson[List[String]](m.getOrElse(JsString("images"), JsArray(List[JsValue]()))),
+          fromjson[String](m.getOrElse(JsString("icon"), JsString("")))
         )
       case _ => throw new RuntimeException("JsObject expected")
     }
@@ -53,7 +54,8 @@ object Appliance extends DefaultProtocol {
         (tojson("memory").asInstanceOf[JsString], tojson(p.memory)),
         (tojson("storage").asInstanceOf[JsString], tojson(p.storage)),
         (tojson("category").asInstanceOf[JsString], tojson(p.category)),
-        (tojson("images").asInstanceOf[JsString], tojson(p.images))
+        (tojson("images").asInstanceOf[JsString], tojson(p.images)),
+        (tojson("icon").asInstanceOf[JsString], tojson(p.icon))
       ))
   }
 }

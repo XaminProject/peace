@@ -34,6 +34,7 @@ class ApplianceSetProvider extends IQProvider {
           case "storage" => applianceSet.setStorage(parser.nextText().toInt)
           case "category" => applianceSet.setCategory(parser.nextText())
           case "images" => images = parser.nextText() :: images
+          case "icon" => applianceSet.setIcon(parser.nextText())
           case _ => Unit
         }
       } else if(eventType == XmlPullParser.END_TAG) {
