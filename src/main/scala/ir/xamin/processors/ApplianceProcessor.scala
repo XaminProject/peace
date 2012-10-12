@@ -49,6 +49,7 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
   val xmpp = xmppConnection
   val redis = redisClient
   val solr = solrClient
+  val platform = compat.Platform
 
   /** smack sends us the packets that we can process here
    * @param packet the packet that passed filter
@@ -147,7 +148,7 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
     val appliance = new Appliance(set.getName, set.getVersion,
       set.getDescription, set.getURL, set.getAuthor, false, set.getTags,
       set.getCPU, set.getMemory, set.getStorage, set.getCategory,
-      set.getImages, set.getIcon)
+      set.getImages, set.getIcon, platform.currentTime)
     val key = "Appliance:"+set.getName
     // save relation of appliance <-> author
     saveAuthor(set.getName, set.getVersion, set.getAuthor)
@@ -193,7 +194,11 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
         }
         // save relation of appliance <-> tags
         saveTags(name, appliance.tags)
+        // save relation of appliance <-> category
         saveCategory(name, appliance.category)
+        // save appliances in a sorted set with score of creation date
+        redis.zadd("Appliances", appliance.creation, name)
+        // ok, let's change the enable property and store the appliance
         val enabledAppliance = new Appliance(
           appliance.name,
           appliance.version,
@@ -207,9 +212,11 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
           appliance.storage,
           appliance.category,
           appliance.images,
-          appliance.icon
+          appliance.icon,
+          appliance.creation
         )
         redis.lset(key, index.get, tojson[Appliance](enabledAppliance))
+        // save the appliance into full text search engine
         updateSolr(enabledAppliance)
         return xmpp.sendPacket(enable.createResultIQ(enabledAppliance))
       }

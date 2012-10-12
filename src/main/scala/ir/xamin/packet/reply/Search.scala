@@ -34,6 +34,7 @@ class Search extends IQ {
       val author = appliance.author
       val category = appliance.category
       val icon = appliance.icon
+      val creation = appliance.creation
       val tags = appliance.tags.flatMap { s => <tag>{s}</tag> }
       val images = appliance.images.flatMap { s => <image>{s}</image> }
       packagesTag += <appliance>
@@ -45,6 +46,7 @@ class Search extends IQ {
           <category>{category}</category>
           <images>{images}</images>
           <icon>{icon}</icon>
+          <creation>{creation}</creation>
         </appliance>
     }
     <search xmlns="client:search:xamin">{ packagesTag }</search>.toString
