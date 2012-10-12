@@ -133,7 +133,7 @@ class ApplianceSet extends IQ {
   def getImages = images
 
   /** setter for images of appliance that will be stored
-   * @return a list of images URI based on cdn
+   * @param a list of images URI based on cdn
    */
   def setImages(v:List[String]) = images = v
 
