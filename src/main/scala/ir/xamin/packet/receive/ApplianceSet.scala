@@ -19,6 +19,7 @@ class ApplianceSet extends IQ {
   private var cpu:Int = _
   private var memory:Int = _
   private var storage:Int = _
+  private var category:String = _
 
   // set type of iq
   setType(IQ.Type.SET)
@@ -115,6 +116,16 @@ class ApplianceSet extends IQ {
    */
   def setStorage(v:Int) = storage = v
 
+  /** getter for category of appliance that will be stored
+   * @return a string which is category identifier of appliance
+   */
+  def getCategory = category
+
+  /** setter for category of appliance that will be stored
+   * @param v a string which is category identifier of appliance
+   */
+  def setCategory(v:String) = category = v
+
   /** the inner xml of iq
    * @return a string which is going to be inner xml of iq
    */
@@ -131,6 +142,7 @@ class ApplianceSet extends IQ {
       <memory>{memory}</memory>
       <storage>{storage}</storage>
       <tags>{_tags}</tags>
+      <category>{category}</category>
     </package>.toString
   }
 

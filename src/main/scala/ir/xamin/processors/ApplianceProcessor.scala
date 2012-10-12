@@ -88,6 +88,16 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
     }
   }
 
+  /** stores relation between category and appliance in redis
+   * @param appliance name of appliance
+   * @param tags list of tags
+   */
+  def saveCategory(appliance:String, category:String):Unit = {
+    val rating = getApplianceRating(appliance)
+    redis.zincrby("categories", 1, category)
+    redis.zadd("category:"+category, rating, appliance)
+  }
+
   /** removes relation between tags and appliances in redis
    * @param name the name of appliance
    * @param tags list of tags
@@ -136,7 +146,7 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
   def processApplianceSet(set: ApplianceSet):Unit = {
     val appliance = new Appliance(set.getName, set.getVersion,
       set.getDescription, set.getURL, set.getAuthor, false, set.getTags,
-      set.getCPU, set.getMemory, set.getStorage)
+      set.getCPU, set.getMemory, set.getStorage, set.getCategory)
     val key = "Appliance:"+set.getName
     // save relation of appliance <-> author
     saveAuthor(set.getName, set.getVersion, set.getAuthor)
@@ -182,6 +192,7 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
         }
         // save relation of appliance <-> tags
         saveTags(name, appliance.tags)
+        saveCategory(name, appliance.category)
         val enabledAppliance = new Appliance(
           appliance.name,
           appliance.version,
@@ -192,7 +203,8 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
           appliance.tags,
           appliance.cpu,
           appliance.memory,
-          appliance.storage
+          appliance.storage,
+          appliance.category
         )
         redis.lset(key, index.get, tojson[Appliance](enabledAppliance))
         updateSolr(enabledAppliance)

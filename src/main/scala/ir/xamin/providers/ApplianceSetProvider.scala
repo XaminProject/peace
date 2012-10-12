@@ -31,6 +31,7 @@ class ApplianceSetProvider extends IQProvider {
           case "cpu" => applianceSet.setCPU(parser.nextText().toInt)
           case "memory" => applianceSet.setMemory(parser.nextText().toInt)
           case "storage" => applianceSet.setStorage(parser.nextText().toInt)
+          case "category" => applianceSet.setCategory(parser.nextText())
           case _ => Unit
         }
       } else if(eventType == XmlPullParser.END_TAG) {
