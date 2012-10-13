@@ -33,7 +33,7 @@ class ApplianceSetProvider extends IQProvider {
           case "memory" => applianceSet.setMemory(parser.nextText().toInt)
           case "storage" => applianceSet.setStorage(parser.nextText().toInt)
           case "category" => applianceSet.setCategory(parser.nextText())
-          case "images" => images = parser.nextText() :: images
+          case "image" => images = parser.nextText() :: images
           case "icon" => applianceSet.setIcon(parser.nextText())
           case _ => Unit
         }
