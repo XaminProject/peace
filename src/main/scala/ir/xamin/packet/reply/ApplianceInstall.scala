@@ -75,7 +75,7 @@ class ApplianceInstall extends IQ {
     if(!versionHistory.isEmpty)
       historyElement = <history>{ versionHistory }</history>
     appliance match {
-      case Appliance(n, v, d, u, a, e, t, c, m, s, ca, i, icon, cr) => {
+      case Appliance(n, v, d, u, a, e, t, c, m, s, ca, i, icon, cr, h) => {
         val tags = t.flatMap { s => <tag>{s}</tag> }
         val images = i.flatMap { s => <image>{s}</image> }
         <appliance xmlns={ ns }>
@@ -92,6 +92,7 @@ class ApplianceInstall extends IQ {
           <images>{images}</images>
           <icon>{icon}</icon>
           <creation>{cr}</creation>
+          <home>{h}</home>
           { historyElement }
         </appliance>.toString
       }

@@ -35,6 +35,7 @@ class ApplianceSetProvider extends IQProvider {
           case "category" => applianceSet.setCategory(parser.nextText())
           case "image" => images = parser.nextText() :: images
           case "icon" => applianceSet.setIcon(parser.nextText())
+          case "home" => applianceSet.setHome(parser.nextText())
           case _ => Unit
         }
       } else if(eventType == XmlPullParser.END_TAG) {
