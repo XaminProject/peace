@@ -19,9 +19,10 @@ class ApplianceSet extends IQ {
   private var cpu:Int = _
   private var memory:Int = _
   private var storage:Int = _
-  private var category:String = _
+  private var category:String = "others"
   private var images:List[Map[String, String]] = _
-  private var icon:String = _
+  private var icon:String = ""
+  private var home:String = ""
 
   // set type of iq
   setType(IQ.Type.SET)
@@ -147,6 +148,16 @@ class ApplianceSet extends IQ {
    * @param a string which is URI of icon based on cdn
    */
   def setIcon(v:String) = icon = v
+
+  /** getter for home of appliance that will be stored
+   * @return a string which is URI of appliance's home page
+   */
+  def getHome = home
+
+  /** setter for home of appliance that will be stored
+   * @param a string which is URI of appliance's home page
+   */
+  def setHome(v:String) = home = v
 
   /** the inner xml of iq
    * @return a string which is going to be inner xml of iq
