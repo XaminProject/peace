@@ -17,15 +17,25 @@ class ApplianceSetProvider extends IQProvider {
     val applianceSet = new ApplianceSet
     var remaining = true
     var tags = List[String]()
-    var images = List[String]()
+    var images = List[Map[String, String]]()
+    var inImage = false
+    var image = Map[String, String]()
     while(remaining) {
       val eventType = parser.next()
       if(eventType == XmlPullParser.START_TAG) {
         val name = parser.getName()
+        if(name == "image") {
+          inImage = true
+          image = Map[String, String]()
+        }
         name match {
           case "name" => applianceSet.setName(parser.nextText())
           case "version" => applianceSet.setVersion(parser.nextText())
-          case "description" => applianceSet.setDescription(parser.nextText())
+          case "description" =>
+            if(inImage)
+              image += ("description" -> parser.nextText())
+            else
+              applianceSet.setDescription(parser.nextText())
           case "url" => applianceSet.setURL(parser.nextText())
           case "author" => applianceSet.setAuthor(parser.nextText())
           case "tag" => tags = parser.nextText() :: tags
@@ -33,11 +43,16 @@ class ApplianceSetProvider extends IQProvider {
           case "memory" => applianceSet.setMemory(parser.nextText().toInt)
           case "storage" => applianceSet.setStorage(parser.nextText().toInt)
           case "category" => applianceSet.setCategory(parser.nextText())
-          case "image" => images = parser.nextText() :: images
           case "icon" => applianceSet.setIcon(parser.nextText())
+          case "title" => image += ("title" -> parser.nextText())
+          case "path" => image += ("path" -> parser.nextText())
           case _ => Unit
         }
       } else if(eventType == XmlPullParser.END_TAG) {
+        if(parser.getName() == "image") {
+          images = image :: images
+          inImage = false
+        }
         if(parser.getName() == ApplianceSetProvider.element)
           remaining = false
       }

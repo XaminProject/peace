@@ -20,7 +20,7 @@ class ApplianceSet extends IQ {
   private var memory:Int = _
   private var storage:Int = _
   private var category:String = _
-  private var images:List[String] = _
+  private var images:List[Map[String, String]] = _
   private var icon:String = _
 
   // set type of iq
@@ -136,7 +136,7 @@ class ApplianceSet extends IQ {
   /** setter for images of appliance that will be stored
    * @param a list of images URI based on cdn
    */
-  def setImages(v:List[String]) = images = v
+  def setImages(v:List[Map[String, String]]) = images = v
 
   /** getter for icon of appliance that will be stored
    * @return a string which is URI of icon based on cdn

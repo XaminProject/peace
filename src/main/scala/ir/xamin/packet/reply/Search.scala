@@ -36,7 +36,12 @@ class Search extends IQ {
       val icon = appliance.icon
       val creation = appliance.creation
       val tags = appliance.tags.flatMap { s => <tag>{s}</tag> }
-      val images = appliance.images.flatMap { s => <image>{s}</image> }
+      val images = for {
+        m <- appliance.images
+        path <- m.get("path")
+        title <- m.get("title")
+        description <- m.get("description")
+      } yield <image><path>{path}</path><title>{title}</title><description>{description}</description></image>
       packagesTag += <appliance>
           <name>{name}</name>
           <version>{version}</version>

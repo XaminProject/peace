@@ -8,7 +8,7 @@ import JsonSerialization._
  */
 case class Appliance(name:String, version:String, description:String, url:String,
   author:String, enabled:Boolean, tags:List[String], cpu:Int, memory:Int, storage:Int,
-  category:String, images:List[String], icon:String, creation:Long)
+  category:String, images:List[Map[String, String]], icon:String, creation:Long)
 
 /** companion object of Appliance to provide json conversion of Appliance
  */
@@ -31,7 +31,7 @@ object Appliance extends DefaultProtocol {
           fromjson[Int](m.getOrElse(JsString("memory"), JsNumber(64))),
           fromjson[Int](m.getOrElse(JsString("storage"), JsNumber(8))),
           fromjson[String](m.getOrElse(JsString("category"), JsString("others"))),
-          fromjson[List[String]](m.getOrElse(JsString("images"), JsArray(List[JsValue]()))),
+          fromjson[List[Map[String, String]]](m.getOrElse(JsString("images"), JsArray(List[JsValue]()))),
           fromjson[String](m.getOrElse(JsString("icon"), JsString(""))),
           fromjson[Long](m.getOrElse(JsString("creation"), JsNumber(0)))
         )

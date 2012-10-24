@@ -267,7 +267,8 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
         val len = redis.llen(key).get
         return Some(len-indexTmp.get.toInt-1)
       }
-    }
+    } else
+      return Some(0)
     return None
   }
 
@@ -281,7 +282,7 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
     val index = getApplianceIndex(name, version)
     if(index.isEmpty)
       return None
-    return getAppliance(key, index.get)
+    return getAppliance(name, index.get)
   }
 
   /** fetches Appliance based on name / index
