@@ -155,7 +155,8 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
       set.getDescription, set.getURL, set.getAuthor, false, set.getTags,
       set.getCPU, set.getMemory, set.getStorage, set.getCategory,
       set.getImages, set.getIcon, platform.currentTime, set.getHome)
-    val key = "Appliance:"+set.getName
+    val hash = ("([0-9A-Za-z]+).xvm2$".r findFirstMatchIn appliance.url) map (_.group(1))
+    val key = "Appliance:"+appliance.name
     // save relation of appliance <-> author
     saveAuthor(set.getName, set.getAuthor)
     val manager = new PubSubManager(xmpp)
@@ -164,6 +165,9 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
     val versionRightIndex = redis.llen(key)
     redis.lpush(key, tojson[Appliance](appliance))
     redis.set("appliance_version_to_index:"+appliance.name+":"+appliance.version, versionRightIndex.get)
+    if(!hash.isEmpty) {
+      redis.hmset("ApplianceHash", Map(hash.get -> (appliance.name+":"+appliance.version)))
+    }
     xmpp.sendPacket(IQ.createResultIQ(set))
     if(isNew) {
       val form = new ConfigureForm(FormType.submit)
