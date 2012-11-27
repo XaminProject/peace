@@ -77,8 +77,13 @@ class ApplianceInstall extends IQ {
     appliance match {
       case Appliance(n, v, d, u, a, e, t, c, m, s, ca, i, icon, cr, h) => {
         val tags = t.flatMap { s => <tag>{s}</tag> }
-        val images = i.flatMap { s => <image>{s}</image> }
-        <appliance xmlns={ ns }>
+        val images = for {
+          m <- appliance.images
+          path <- m.get("path")
+          title <- m.get("title")
+          description <- m.get("description")
+        } yield <image><path>{path}</path><title>{title}</title><description>{description}</description></image>
+        return <appliance xmlns={ ns }>
           <name>{ n }</name>
           <version>{ v }</version>
           <description>{ d }</description>
@@ -96,7 +101,7 @@ class ApplianceInstall extends IQ {
           { historyElement }
         </appliance>.toString
       }
-      case _ => ""
+      case _ => return ""
     }
   }
 }

@@ -53,6 +53,8 @@ class Peace(host: Option[String],
   def registerIQProviders() {
     // search
     providerManager.addIQProvider(SearchProvider.element, SearchProvider.namespace, new SearchProvider)
+    // hashsearch
+    providerManager.addIQProvider(HashSearchProvider.element, HashSearchProvider.namespace, new HashSearchProvider)
     // appliance (set)
     providerManager.addIQProvider(ApplianceSetProvider.element, ApplianceSetProvider.namespace, new ApplianceSetProvider)
     // appliance (get)
@@ -76,6 +78,10 @@ class Peace(host: Option[String],
     val searchProcessor = new SearchProcessor(redis, xmpp, solr)
     xmpp.createPacketCollector(searchProcessor.filter)
     xmpp.addPacketListener(searchProcessor, searchProcessor.filter)
+    // hashsearch
+    val hashSearchProcessor = new HashSearchProcessor(redis, xmpp, solr)
+    xmpp.createPacketCollector(hashSearchProcessor.filter)
+    xmpp.addPacketListener(hashSearchProcessor, hashSearchProcessor.filter)
     // Appliance (set/get/install/enable/removed)
     val applianceProcessor = new ApplianceProcessor(redis, xmpp, solr, rms)
     xmpp.createPacketCollector(applianceProcessor.filter)
