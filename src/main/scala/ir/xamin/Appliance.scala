@@ -20,24 +20,38 @@ object Appliance extends DefaultProtocol {
      * @return the Appliance
      */
     def reads(json: JsValue):Appliance = json match {
-      case JsObject(m) =>
-        Appliance(fromjson[String](m(JsString("name"))),
-          fromjson[String](m(JsString("version"))),
-          fromjson[String](m(JsString("description"))),
-          fromjson[String](m(JsString("url"))),
-          fromjson[String](m(JsString("author"))),
-          fromjson[Boolean](m(JsString("enabled"))),
-          fromjson[List[String]](m(JsString("tags"))),
-          fromjson[Int](m.getOrElse(JsString("cpu"), JsNumber(1))),
-          fromjson[Int](m.getOrElse(JsString("memory"), JsNumber(64))),
-          fromjson[Int](m.getOrElse(JsString("storage"), JsNumber(8))),
-          fromjson[String](m.getOrElse(JsString("category"), JsString("others"))),
-          fromjson[List[Map[String, String]]](m.getOrElse(JsString("images"), JsArray(List[JsValue]()))),
-          fromjson[String](m.getOrElse(JsString("icon"), JsString(""))),
-          fromjson[Long](m.getOrElse(JsString("creation"), JsNumber(0))),
-          fromjson[String](m.getOrElse(JsString("home"), JsString(""))),
-          fromjson[PaymentPolicy](m.getOrElse(JsString("payment"), JsNull))
-        )
+      case JsObject(m) => {
+        var pp:PaymentPolicy = null
+        val ppTmp = m.get(JsString("payment"))
+        if (!ppTmp.isEmpty) {
+          pp = fromjson[PaymentPolicy](ppTmp.get)
+        }
+        try {
+          Appliance(fromjson[String](m(JsString("name"))),
+            fromjson[String](m(JsString("version"))),
+            fromjson[String](m(JsString("description"))),
+            fromjson[String](m(JsString("url"))),
+            fromjson[String](m(JsString("author"))),
+            fromjson[Boolean](m(JsString("enabled"))),
+            fromjson[List[String]](m(JsString("tags"))),
+            fromjson[Int](m.getOrElse(JsString("cpu"), JsNumber(1))),
+            fromjson[Int](m.getOrElse(JsString("memory"), JsNumber(64))),
+            fromjson[Int](m.getOrElse(JsString("storage"), JsNumber(8))),
+            fromjson[String](m.getOrElse(JsString("category"), JsString("others"))),
+            fromjson[List[Map[String, String]]](m.getOrElse(JsString("images"), JsArray(List[JsValue]()))),
+            fromjson[String](m.getOrElse(JsString("icon"), JsString(""))),
+            fromjson[Long](m.getOrElse(JsString("creation"), JsNumber(0))),
+            fromjson[String](m.getOrElse(JsString("home"), JsString(""))),
+            pp
+          )
+        } catch {
+          case e:Exception => {
+            println(e.printStackTrace)
+            println(m)
+            throw new RuntimeException("Invalid Appliance json")
+          }
+        }
+      }
       case _ => throw new RuntimeException("JsObject expected")
     }
 
@@ -62,7 +76,7 @@ object Appliance extends DefaultProtocol {
         (tojson("icon").asInstanceOf[JsString], tojson(p.icon)),
         (tojson("creation").asInstanceOf[JsString], tojson(p.creation)),
         (tojson("home").asInstanceOf[JsString], tojson(p.home)),
-        (tojson("payment").asInstanceOf[JsString], tojson(p.payment))
+        (tojson("payment").asInstanceOf[JsString], tojson[PaymentPolicy](p.payment))
       ))
   }
 }

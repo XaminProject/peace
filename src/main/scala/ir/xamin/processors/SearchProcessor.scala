@@ -8,7 +8,7 @@ import org.jivesoftware.smack.XMPPConnection
 import com.redis._
 import com.github.seratch.scalikesolr._
 import org.jivesoftware.smack.PacketListener
-import org.jivesoftware.smack.packet.{IQ, Packet}
+import org.jivesoftware.smack.packet.{IQ, Packet, XMPPError}
 import org.jivesoftware.smack.filter.PacketFilter
 
 /** this packet processes search requests
@@ -17,7 +17,7 @@ class SearchProcessor(redisClient: RedisClient, xmppConnection: XMPPConnection, 
   // we already have namespace / tag name as filters of this
   // processor so just checking packet type is enough
   object filter extends PacketFilter {
-    def accept(p: Packet):Boolean = {
+    def accept(p:Packet):Boolean = {
       return p match {
         case p:Search => true
         case _ => false
@@ -28,16 +28,29 @@ class SearchProcessor(redisClient: RedisClient, xmppConnection: XMPPConnection, 
   /** smack sends us the packets that passed filtering here
    * @param packet the packet that should be processed
    */
-  def processPacket(packet: Packet):Unit = {
-    packet match {
-      case search: Search => processSearch(search)
+  def processPacket(packet:Packet):Unit = {
+    try {
+      packet match {
+        case search: Search => processSearch(search)
+      }
+    } catch {
+      case _ => {
+        packet match {
+          case iq:IQ => xmpp.sendPacket(IQ.createErrorResponse(
+            iq,
+            new XMPPError(
+              XMPPError.Condition.interna_server_error
+            )
+          ))
+        }
+      }
     }
   }
 
   /** processes Search packets
    * @param search the packet to be processed
    */
-  def processSearch(search: Search):Unit = {
+  def processSearch(search:Search):Unit = {
     val packages = redis.keys("Appliance:"+search.getQuery)
     var appliances = MutableList[Appliance]()
     for {

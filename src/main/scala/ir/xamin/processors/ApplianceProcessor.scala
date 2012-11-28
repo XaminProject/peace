@@ -11,7 +11,7 @@ import com.github.seratch.scalikesolr._
 import sjson.json._
 import dispatch.json._
 import JsonSerialization._
-import org.jivesoftware.smack.packet.{IQ, Packet}
+import org.jivesoftware.smack.packet.{IQ, Packet, XMPPError}
 import org.jivesoftware.smack.filter.PacketFilter
 import org.jivesoftware.smack.util.StringUtils
 import org.jivesoftware.smackx.pubsub._
@@ -51,13 +51,26 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
   /** smack sends us the packets that we can process here
    * @param packet the packet that passed filter
    */
-  def processPacket(packet: Packet):Unit = {
-    packet match {
-      case set: ApplianceSet => processApplianceSet(set)
-      case enable: ApplianceEnable => processApplianceEnable(enable)
-      case get: ApplianceGet => processApplianceGet(get)
-      case install: ApplianceInstall => processApplianceInstall(install)
-      case removed: ApplianceRemoved => processApplianceRemoved(removed)
+  def processPacket(packet:Packet):Unit = {
+    try {
+      packet match {
+        case set: ApplianceSet => processApplianceSet(set)
+        case enable: ApplianceEnable => processApplianceEnable(enable)
+        case get: ApplianceGet => processApplianceGet(get)
+        case install: ApplianceInstall => processApplianceInstall(install)
+        case removed: ApplianceRemoved => processApplianceRemoved(removed)
+      }
+    } catch {
+      case _ => {
+        packet match {
+          case iq:IQ => xmpp.sendPacket(IQ.createErrorResponse(
+            iq,
+            new XMPPError(
+              XMPPError.Condition.interna_server_error
+            )
+          ))
+        }
+      }
     }
   }
 

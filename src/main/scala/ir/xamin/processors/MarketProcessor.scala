@@ -6,7 +6,7 @@ import org.jivesoftware.smack.XMPPConnection
 import com.redis._
 import com.github.seratch.scalikesolr._
 import org.jivesoftware.smack.PacketListener
-import org.jivesoftware.smack.packet.{IQ, Packet}
+import org.jivesoftware.smack.packet.{IQ, Packet, XMPPError}
 import org.jivesoftware.smack.filter.PacketFilter
 import org.jivesoftware.smack.util.StringUtils
 
@@ -35,9 +35,22 @@ class MarketProcessor(redisClient:RedisClient, xmppConnection:XMPPConnection, so
    * @param packet the packet that passed the filter
    */
   def processPacket(packet: Packet):Unit = {
-    packet match {
-      case i:MarketInstall => processMarketInstall(i)
-      case r:MarketRemove => processMarketRemove(r)
+    try {
+      packet match {
+        case i:MarketInstall => processMarketInstall(i)
+        case r:MarketRemove => processMarketRemove(r)
+      }
+    } catch {
+      case _ => {
+        packet match {
+          case iq:IQ => xmpp.sendPacket(IQ.createErrorResponse(
+            iq,
+            new XMPPError(
+              XMPPError.Condition.interna_server_error
+            )
+          ))
+        }
+      }
     }
   }
 
