@@ -1,5 +1,6 @@
 package ir.xamin.packet.receive
 
+import ir.xamin.PaymentPolicy
 import ir.xamin.packet.reply.{ApplianceSet => ReplyApplianceSet}
 import ir.xamin.providers.ApplianceSetProvider
 import ir.xamin.Appliance
@@ -23,6 +24,7 @@ class ApplianceSet extends IQ {
   private var images:List[Map[String, String]] = _
   private var icon:String = ""
   private var home:String = ""
+  private var payment:PaymentPolicy = _
 
   // set type of iq
   setType(IQ.Type.SET)
@@ -158,6 +160,18 @@ class ApplianceSet extends IQ {
    * @param a string which is URI of appliance's home page
    */
   def setHome(v:String) = home = v
+
+  /** getter for payment policy of appliance that's gonna
+   * be stored
+   * @return an instance of PaymentPolicy
+   */
+  def getPayment = payment
+
+  /** getter for payment policy of appliance that's gonna
+   * be stored
+   * @param v an instance of PaymentPolicy
+   */
+  def setPayment(v:PaymentPolicy) = payment = v
 
   /** the inner xml of iq
    * @return a string which is going to be inner xml of iq

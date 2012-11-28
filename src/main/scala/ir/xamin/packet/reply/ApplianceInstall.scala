@@ -75,7 +75,7 @@ class ApplianceInstall extends IQ {
     if(!versionHistory.isEmpty)
       historyElement = <history>{ versionHistory }</history>
     appliance match {
-      case Appliance(n, v, d, u, a, e, t, c, m, s, ca, i, icon, cr, h) => {
+      case Appliance(n, v, d, u, a, e, t, c, m, s, ca, i, icon, cr, h, p) => {
         val tags = t.flatMap { s => <tag>{s}</tag> }
         val images = for {
           m <- appliance.images

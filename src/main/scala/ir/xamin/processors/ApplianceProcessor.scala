@@ -139,7 +139,8 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
     val appliance = new Appliance(set.getName, set.getVersion,
       set.getDescription, set.getURL, set.getAuthor, false, set.getTags,
       set.getCPU, set.getMemory, set.getStorage, set.getCategory,
-      set.getImages, set.getIcon, platform.currentTime, set.getHome)
+      set.getImages, set.getIcon, platform.currentTime, set.getHome,
+      set.getPayment)
     val hash = ("([0-9A-Za-z]+).xvm2$".r findFirstMatchIn appliance.url) map (_.group(1))
     val key = "Appliance:"+appliance.name
     // save relation of appliance <-> author
@@ -209,7 +210,8 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
           appliance.images,
           appliance.icon,
           appliance.creation,
-          appliance.home
+          appliance.home,
+          appliance.payment
         )
         redis.lset(key, index.get, tojson[Appliance](enabledAppliance))
         // save the appliance into full text search engine
