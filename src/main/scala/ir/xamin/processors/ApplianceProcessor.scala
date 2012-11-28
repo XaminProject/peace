@@ -1,6 +1,7 @@
 package ir.xamin.processors
 
 import ir.xamin.Appliance
+import ir.xamin.Processor
 import ir.xamin.packet.{ApplianceItem, OwnerBehalfSubscribe}
 import ir.xamin.packet.receive.{ApplianceSet, ApplianceGet, ApplianceInstall, ApplianceEnable, ApplianceRemoved}
 import scala.collection.mutable.MutableList
@@ -10,7 +11,6 @@ import com.github.seratch.scalikesolr._
 import sjson.json._
 import dispatch.json._
 import JsonSerialization._
-import org.jivesoftware.smack.PacketListener
 import org.jivesoftware.smack.packet.{IQ, Packet}
 import org.jivesoftware.smack.filter.PacketFilter
 import org.jivesoftware.smack.util.StringUtils
@@ -19,7 +19,7 @@ import org.jivesoftware.smackx.pubsub._
 /** this class processes the packets that are prefixed with
  * Appliance in ir.xamin.packet.receive
  */
-class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnection, solrClient: SolrClient, rms: Array[String]) extends PacketListener {
+class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnection, solrClient: SolrClient, rms: Array[String]) extends Processor(redisClient, xmppConnection, solrClient) {
   /** this objects filters the packets that we can process
    */
   object filter extends PacketFilter {
@@ -46,9 +46,6 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
       }
     }
   }
-  val xmpp = xmppConnection
-  val redis = redisClient
-  val solr = solrClient
   val platform = compat.Platform
 
   /** smack sends us the packets that we can process here
@@ -62,18 +59,6 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
       case install: ApplianceInstall => processApplianceInstall(install)
       case removed: ApplianceRemoved => processApplianceRemoved(removed)
     }
-  }
-
-  /** returns current rating of appliance
-   * @param name the name of appliance
-   * @return rating
-   */
-  def getApplianceRating(name:String):Int = {
-    val rating = redis.zscore("ratings", name)
-    if(rating.isEmpty)
-      0
-    else
-      rating.get.toInt
   }
 
   /** stores relation between tags and appliance in redis
@@ -241,68 +226,12 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
   def processApplianceRemoved(removed: ApplianceRemoved):Unit = {
     val name = removed.getName
     val version = removed.getVersion
-    val key = "Appliance:"+name
-    val indexTmp = redis.get("appliance_version_to_index:"+name+":"+version)
-    if(indexTmp.isEmpty)
-      return xmpp.sendPacket(IQ.createResultIQ(removed))
-    val len = redis.llen(key).get
-    val index = len-indexTmp.get.toInt-1
-    val encodedAppliance = redis.lindex(key, index)
-    if(!encodedAppliance.isEmpty){
-      val appliance = fromjson[Appliance](Js(encodedAppliance.get))
+    val appliance = getAppliance(name, version)
+    if(!appliance.isEmpty){
       applianceRemoved(removed.getFrom, name, version)
-      return xmpp.sendPacket(removed.createResultIQ(appliance))
+      return xmpp.sendPacket(removed.createResultIQ(appliance.get))
     }
     xmpp.sendPacket(IQ.createResultIQ(removed))
-  }
-
-  /** fetches index of Appliance based on name / version
-   * @param name the name of appliance
-   * @param version the version of appliance
-   * @return index
-   */
-  def getApplianceIndex(name:String, version:String):Option[Int] = {
-    val key = "Appliance:"+name
-    var index = 0
-    if(version != null){
-      val indexTmp = redis.get("appliance_version_to_index:"+name+":"+version)
-      if(!indexTmp.isEmpty){
-        // the index contains number of items we need to pass from
-        // end of list, we need to convert it to index from start
-        val len = redis.llen(key).get
-        return Some(len-indexTmp.get.toInt-1)
-      }
-    } else
-      return Some(0)
-    return None
-  }
-
-  /** fetches Appliance based on name / version
-   * @param name the name of appliance
-   * @param version the version of appliance
-   * @return appliance
-   */
-  def getAppliance(name:String, version:String):Option[Appliance] = {
-    val key = "Appliance:"+name
-    val index = getApplianceIndex(name, version)
-    if(index.isEmpty)
-      return None
-    return getAppliance(name, index.get)
-  }
-
-  /** fetches Appliance based on name / index
-   * @param name the name of appliance
-   * @param index the index of appliance in list
-   * @return appliance
-   */
-  def getAppliance(name:String, index:Int):Option[Appliance] = {
-    val key = "Appliance:"+name
-    val encodedAppliance = redis.lindex(key, index)
-    if(!encodedAppliance.isEmpty){
-      val appliance = fromjson[Appliance](Js(encodedAppliance.get))
-      return Some(appliance)
-    }
-    return None
   }
 
   /** processes ApplianceGet packet

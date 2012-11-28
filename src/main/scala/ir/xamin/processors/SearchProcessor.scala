@@ -1,12 +1,10 @@
 package ir.xamin.processors
 
 import ir.xamin.Appliance
+import ir.xamin.Processor
 import ir.xamin.packet.receive.Search
 import scala.collection.mutable.MutableList
 import org.jivesoftware.smack.XMPPConnection
-import sjson.json._
-import dispatch.json._
-import JsonSerialization._
 import com.redis._
 import com.github.seratch.scalikesolr._
 import org.jivesoftware.smack.PacketListener
@@ -15,7 +13,7 @@ import org.jivesoftware.smack.filter.PacketFilter
 
 /** this packet processes search requests
  */
-class SearchProcessor(redisClient: RedisClient, xmppConnection: XMPPConnection, solrClient: SolrClient) extends PacketListener {
+class SearchProcessor(redisClient: RedisClient, xmppConnection: XMPPConnection, solrClient: SolrClient) extends Processor(redisClient, xmppConnection, solrClient) {
   // we already have namespace / tag name as filters of this
   // processor so just checking packet type is enough
   object filter extends PacketFilter {
@@ -26,9 +24,6 @@ class SearchProcessor(redisClient: RedisClient, xmppConnection: XMPPConnection, 
       }
     }
   }
-  val xmpp = xmppConnection
-  val redis = redisClient
-  val solr = solrClient
 
   /** smack sends us the packets that passed filtering here
    * @param packet the packet that should be processed
@@ -49,7 +44,10 @@ class SearchProcessor(redisClient: RedisClient, xmppConnection: XMPPConnection, 
       ps <- packages
       p <- ps
     } {
-      appliances += fromjson[Appliance](Js(redis.lindex(p.get, 0).get))
+      val appliance = getAppliance(p.get, 0)
+      if (!appliance.isEmpty) {
+        appliances += appliance.get
+      }
     }
     val result = search.createResultIQ(appliances)
     xmpp.sendPacket(result)

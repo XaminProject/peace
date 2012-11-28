@@ -1,5 +1,6 @@
 package ir.xamin.processors
 
+import ir.xamin.Processor
 import ir.xamin.packet.receive.{MarketInstall, MarketRemove}
 import org.jivesoftware.smack.XMPPConnection
 import com.redis._
@@ -12,7 +13,7 @@ import org.jivesoftware.smack.util.StringUtils
 /** this class processes all packets that are prefixed with
  * Market in ir.xamin.packet.receive
  */
-class MarketProcessor(redisClient:RedisClient, xmppConnection:XMPPConnection, solrClient:SolrClient, market:Array[String]) extends PacketListener {
+class MarketProcessor(redisClient:RedisClient, xmppConnection:XMPPConnection, solrClient:SolrClient, market:Array[String]) extends Processor(redisClient, xmppConnection, solrClient) {
   /** this object filter the packets that we process
    */
   object filter extends PacketFilter {
@@ -29,9 +30,6 @@ class MarketProcessor(redisClient:RedisClient, xmppConnection:XMPPConnection, so
       false
     }
   }
-  val xmpp = xmppConnection
-  val redis = redisClient
-  val solr = solrClient
 
   /** smack sends us packets that passed the filter here
    * @param packet the packet that passed the filter
