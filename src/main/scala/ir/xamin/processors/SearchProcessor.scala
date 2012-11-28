@@ -11,14 +11,21 @@ import com.redis._
 import com.github.seratch.scalikesolr._
 import org.jivesoftware.smack.PacketListener
 import org.jivesoftware.smack.packet.{IQ, Packet}
-import org.jivesoftware.smack.filter.{IQTypeFilter, AndFilter, PacketExtensionFilter}
+import org.jivesoftware.smack.filter.PacketFilter
 
 /** this packet processes search requests
  */
 class SearchProcessor(redisClient: RedisClient, xmppConnection: XMPPConnection, solrClient: SolrClient) extends PacketListener {
   // we already have namespace / tag name as filters of this
   // processor so just checking packet type is enough
-  val filter = new IQTypeFilter(IQ.Type.GET)
+  object filter extends PacketFilter {
+    def accept(p: Packet):Boolean = {
+      return p match {
+        case p:Search => true
+        case _ => false
+      }
+    }
+  }
   val xmpp = xmppConnection
   val redis = redisClient
   val solr = solrClient

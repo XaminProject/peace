@@ -1,6 +1,6 @@
 package ir.xamin.packet.receive
 
-import ir.xamin.packet.reply.{Search => ReplySearch}
+import ir.xamin.packet.reply.{HashSearch => ReplyHashSearch}
 import ir.xamin.providers.HashSearchProvider
 import ir.xamin.Appliance
 import scala.xml._
@@ -35,11 +35,11 @@ class HashSearch extends IQ {
   }
 
   /** creates reply of request
-   * @param packages a list of appliances that match the search
+   * @param packages a map of hash-string to appliances that match the search
    * @return the reply
    */
-  def createResultIQ(packages:MutableList[Appliance]):ReplySearch = {
-    val search = new ReplySearch
+  def createResultIQ(packages:Map[String, Appliance]) = {
+    val search = new ReplyHashSearch
     search setPacketID getPacketID
     search setFrom getTo
     search setTo getFrom
