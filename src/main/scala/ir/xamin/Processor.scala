@@ -44,7 +44,7 @@ abstract class Processor(redisClient: RedisClient, xmppConnection: XMPPConnectio
       if(!indexTmp.isEmpty){
         // the index contains number of items we need to pass from
         // end of list, we need to convert it to index from start
-        val len = redis.llen(key).get
+        val len = redis.llen(key).get.toInt
         return Some(len-indexTmp.get.toInt-1)
       }
     } else

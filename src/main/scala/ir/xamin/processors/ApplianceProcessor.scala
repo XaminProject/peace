@@ -308,7 +308,7 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
     var versionHistory = MutableList[Appliance]()
     val len = redis.llen(key)
     if(!len.isEmpty) {
-      val allVersions = redis.lrange(key, 0, len.get-1)
+      val allVersions = redis.lrange(key, 0, len.get.toInt-1)
       for (ap <- allVersions.get) {
         val appliance = fromjson[Appliance](Js(ap.get))
         if(target == null) {
