@@ -8,7 +8,7 @@ organization := "ir.xamin.peace"
 
 libraryDependencies += "net.debasishg" %% "redisclient" % "2.7"
 
-libraryDependencies += "net.debasishg" % "sjson_2.9.1" % "0.17"
+libraryDependencies += "net.debasishg" %% "sjson" % "0.18"
 
 libraryDependencies += "org.igniterealtime.smack" % "smack" % "3.2.1"
 
