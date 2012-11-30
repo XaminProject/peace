@@ -11,7 +11,7 @@ import com.github.seratch.scalikesolr._
 import sjson.json._
 import dispatch.json._
 import JsonSerialization._
-import org.jivesoftware.smack.packet.{IQ, Packet, XMPPError}
+import org.jivesoftware.smack.packet.{IQ, Packet}
 import org.jivesoftware.smack.filter.PacketFilter
 import org.jivesoftware.smack.util.StringUtils
 import org.jivesoftware.smackx.pubsub._
@@ -61,16 +61,7 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
         case removed: ApplianceRemoved => processApplianceRemoved(removed)
       }
     } catch {
-      case _ => {
-        packet match {
-          case iq:IQ => xmpp.sendPacket(IQ.createErrorResponse(
-            iq,
-            new XMPPError(
-              XMPPError.Condition.interna_server_error
-            )
-          ))
-        }
-      }
+      case e:Exception => internalError(e, packet)
     }
   }
 

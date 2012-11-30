@@ -4,6 +4,7 @@ import com.redis._
 import org.jivesoftware.smack.XMPPConnection
 import com.github.seratch.scalikesolr._
 import org.jivesoftware.smack.PacketListener
+import org.jivesoftware.smack.packet.{IQ, Packet, XMPPError}
 import sjson.json._
 import dispatch.json._
 import JsonSerialization._
@@ -77,4 +78,19 @@ abstract class Processor(redisClient: RedisClient, xmppConnection: XMPPConnectio
       rating.get.toInt
   }
 
+  /** sends internal error in response of packet
+   * @param Exception the thrown exception
+   * @param packet the packet that caused problem
+   */
+  def internalError(e:Exception, packet:Packet):Unit = {
+    packet match {
+      case iq:IQ => xmpp.sendPacket(IQ.createErrorResponse(
+        iq,
+        new XMPPError(
+          XMPPError.Condition.interna_server_error,
+          e.getMessage
+        )
+      ))
+    }
+  }
 }

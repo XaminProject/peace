@@ -7,7 +7,7 @@ import scala.collection.mutable.MutableList
 import org.jivesoftware.smack.XMPPConnection
 import com.redis._
 import com.github.seratch.scalikesolr._
-import org.jivesoftware.smack.packet.{IQ, Packet, XMPPError}
+import org.jivesoftware.smack.packet.{IQ, Packet}
 import org.jivesoftware.smack.filter.PacketFilter
 
 /** this packet processes search requests
@@ -33,16 +33,7 @@ class HashSearchProcessor(redisClient: RedisClient, xmppConnection: XMPPConnecti
         case search:HashSearch => processSearch(search)
       }
     } catch {
-      case _ => {
-        packet match {
-          case iq:IQ => xmpp.sendPacket(IQ.createErrorResponse(
-            iq,
-            new XMPPError(
-              XMPPError.Condition.interna_server_error
-            )
-          ))
-        }
-      }
+      case e:Exception => internalError(e, packet)
     }
   }
 
