@@ -141,7 +141,7 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
       val response = solr.doUpdateDocuments(request)
       solr.doCommit(new UpdateRequest)
     } catch {
-      case e:Exception => println(e)
+      case e:Exception => Console.err.println(e)
     }
   }
 

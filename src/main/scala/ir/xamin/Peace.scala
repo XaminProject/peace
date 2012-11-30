@@ -130,7 +130,7 @@ object Peace {
       System.in.read()
     } catch {
       // some arguments seems to be missing, show the help
-      case e: ArgotUsageException => println(e.message)
+      case e: ArgotUsageException => Console.err.println(e.message)
     }
   }
 }

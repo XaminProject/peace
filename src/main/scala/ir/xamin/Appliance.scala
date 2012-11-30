@@ -46,8 +46,8 @@ object Appliance extends DefaultProtocol {
           )
         } catch {
           case e:Exception => {
-            println(e.printStackTrace)
-            println(m)
+            Console.err.println(e.printStackTrace)
+            Console.err.println(m)
             throw new RuntimeException("Invalid Appliance json")
           }
         }
