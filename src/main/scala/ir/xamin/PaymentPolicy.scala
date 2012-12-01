@@ -21,7 +21,9 @@ object PaymentPolicy extends DefaultProtocol {
         PaymentPolicy(fromjson[Double](m(JsString("stock"))),
           fromjson[List[Off]](m(JsString("off")))
         )
-      case _ => throw new RuntimeException("JsObject expected")
+      case JsNull => null
+      case _ =>
+        throw new RuntimeException("JsObject expected")
     }
 
     /** creates a json presentation of PaymentPolicy
@@ -29,10 +31,13 @@ object PaymentPolicy extends DefaultProtocol {
      * @param the json
      */
     def writes(p:PaymentPolicy):JsValue =
-      JsObject(List(
-        (tojson("stock").asInstanceOf[JsString], tojson(p.stock)),
-        (tojson("off").asInstanceOf[JsString], tojson(p.off))
-      ))
+      if(p==null)
+        return JsNull
+      else
+        return JsObject(List(
+          (tojson("stock").asInstanceOf[JsString], tojson(p.stock)),
+          (tojson("off").asInstanceOf[JsString], tojson(p.off))
+        ))
   }
 }
 
