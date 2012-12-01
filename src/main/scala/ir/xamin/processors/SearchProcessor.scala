@@ -48,7 +48,7 @@ class SearchProcessor(redisClient: RedisClient, xmppConnection: XMPPConnection, 
       ps <- packages
       p <- ps
     } {
-      val appliance = getAppliance(p.get, 0)
+      val appliance = getAppliance(p.get.substring(10), 0)
       if (!appliance.isEmpty) {
         appliances += appliance.get
       }
