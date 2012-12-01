@@ -179,7 +179,12 @@ class ApplianceSet extends IQ {
   def getChildElementXML:String = {
     val ns = ApplianceSetProvider.namespace
     val _tags = tags.flatMap { s => <tag>{s}</tag> }
-    val _images = images.flatMap { s => <image>{s}</image> }
+    var _images = images.flatMap { m =>
+      val path = m.get("path")
+      val title = m.get("title")
+      val description = m.get("description")
+      <image><path>{path.get}</path><title>{title.get}</title><description>{description.get}</description></image>
+    }
     <package xmlns={ ns }>
       <name>{ name }</name>
       <description>{ description }</description>
