@@ -91,6 +91,7 @@ abstract class Processor(redisClient: RedisClient, xmppConnection: XMPPConnectio
           e.getMessage
         )
       ))
+      Console.err.println(e.printStackTrace)
     }
   }
 }
