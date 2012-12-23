@@ -20,6 +20,7 @@ import org.jivesoftware.smackx.pubsub._
  * Appliance in ir.xamin.packet.receive
  */
 class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnection, solrClient: SolrClient, rms: Array[String]) extends Processor(redisClient, xmppConnection, solrClient) {
+
   /** this objects filters the packets that we can process
    */
   object filter extends PacketFilter {
@@ -147,8 +148,6 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
       set.getPayment)
     val hash = ("([0-9A-Za-z]+).xvm2$".r findFirstMatchIn appliance.url) map (_.group(1))
     val key = "Appliance:"+appliance.name
-    // save relation of appliance <-> author
-    saveAuthor(set.getName, set.getAuthor)
     val manager = new PubSubManager(xmpp)
     val isNew = !redis.exists(key)
     // index of specific version from end of list
@@ -196,6 +195,8 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
         saveTags(name, appliance.tags)
         // save relation of appliance <-> category
         saveCategory(name, appliance.category)
+        // save relation of appliance <-> author
+        saveAuthor(name, appliance.author)
         // save appliances in a sorted set with score of creation date
         redis.zadd("Appliances", appliance.creation, name)
         // ok, let's change the enable property and store the appliance
