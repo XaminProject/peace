@@ -149,11 +149,25 @@ class ApplianceProcessor(redisClient: RedisClient, xmppConnection: XMPPConnectio
     val hash = ("([0-9A-Za-z]+).xvm2$".r findFirstMatchIn appliance.url) map (_.group(1))
     val key = "Appliance:"+appliance.name
     val manager = new PubSubManager(xmpp)
+    // gonna be used to find out if we've saved any version of appliance or not
     val isNew = !redis.exists(key)
-    // index of specific version from end of list
-    val versionRightIndex = redis.llen(key)
-    redis.lpush(key, tojson[Appliance](appliance))
-    redis.set("appliance_version_to_index:"+appliance.name+":"+appliance.version, versionRightIndex.get)
+    val versionIndexKey = "appliance_version_to_index:"+appliance.name+":"+appliance.version
+    val len = redis.llen(key).get.toInt
+    // we gonna update existing index if we already have the version
+    var versionRightIndex = -1
+    if(redis.exists(versionIndexKey)) {
+      versionRightIndex = redis.get(versionIndexKey).get.toInt
+    }
+    if(versionRightIndex < 0) {
+      // if versionRightIndex is still -1 then it's first time that we're inserting
+      // this version, so we should append it to the end of list
+      redis.lpush(key, tojson[Appliance](appliance))
+      // set the index of this specific version
+      redis.set(versionIndexKey, len)
+    } else {
+      // ok, we've it in redis already, lets update it with new data
+      redis.lset(key, len-versionRightIndex-1, tojson[Appliance](appliance))
+    }
     if(!hash.isEmpty) {
       redis.hmset("ApplianceHash", Map(hash.get -> (appliance.name+":"+appliance.version)))
     }
