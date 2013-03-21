@@ -99,7 +99,7 @@ and the response (in success) will be:
 ```
 
 ### Xamin OS
-actually it's main client that queries the repository. here's are available actions:
+actually it's main client that queries the repository. here are available actions:
 
 #### search
 search repository for available appliances by appliance name:
